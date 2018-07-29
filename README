@@ -1,0 +1,18 @@
+== TODO ==
+Better zooming
+
+== Dependencies ==
+
+OpenGL 3.1 (headers included)
+	Supported Extensions:
+		GL_ARB_debug_output
+		GL_ARB_clear_texture
+		GL_ARB_get_program_binary
+		GL_ARB_timer_query
+		GL_ARB_texture_storage
+
+GLFW (included)
+Glad (included)
+
+
+

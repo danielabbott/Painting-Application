@@ -1,0 +1,24 @@
+CXX=g++
+CC=gcc
+SOURCES=Files.cpp Main.cpp png.cpp Shader.cpp Timer.cpp Window.cpp canvas/ArrayTexture.cpp canvas/Brush.cpp canvas/Canvas.cpp \
+canvas/Framebuffer.cpp canvas/ImageBlock.cpp ui/Font.cpp ui/UI.cpp ui/Widgets.cpp ui/Button.cpp ui/Menu.cpp ui/Label.cpp
+OBJECTS=$(SOURCES:.cpp=.o)
+
+
+all: $(OBJECTS) lib/glad.o
+	$(CXX) *.o lib/*.o UI/*.o Canvas/*.o -o paint.exe -Og -g -fstack-protector-all -DGLFW_DLL -L. -lglfw3 -lpng -lz -lfreetype
+
+# Add '-DNDEBUG' to disable debug assertations
+.cpp.o:
+	$(CXX) -c -std=c++11 -Wall -Wextra -Og -g -Wpedantic -Iinclude -Iwindows_include -fstack-protector-all $< -o $@
+
+lib/glad.o:
+	$(CC) -c lib/glad.c -Iinclude -o lib/glad.o
+
+clean:
+	-del *.o
+	-del lib\*.o
+	-del UI\*.o
+	-del Canvas\*.o
+
+
