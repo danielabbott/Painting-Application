@@ -9,13 +9,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <Brush.h>
 #include <Window.h>
+#include <hwcaps.h>
 
 using namespace std;
 
 Layer layers[64];
 int firstLayer = -1;
 int activeLayer = -1;
-
 
 // 8K
 static unsigned int canvasWidth = 7680;
@@ -343,6 +343,10 @@ static inline void create_opengl_buffers()
 
 static inline void create_opengl_images()
 {
+	if(canvasWidth > max_texture_size() || canvasHeight > max_texture_size()) {
+		throw runtime_error("Canvas too big");
+	}
+
 	canvasFrameBuffer.create(FMT_RGBA, canvasWidth, canvasHeight);
 	strokeLayer.create(FMT_R, canvasWidth, canvasHeight);
 	strokeLayer.clear();
