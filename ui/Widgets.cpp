@@ -25,12 +25,16 @@ bool Container::onClicked_(unsigned int button, unsigned int x, unsigned int y, 
 		return false;
 	}
 
-	onClicked(button, x-actualX, y-actualY);
+	if(!x_in_region(x, y, 0, 0, actualWidth, actualHeight)) {
+		return false;
+	}
+
+	outcome = CONTAINER_INTERACTED_WITH;
+	onClicked(button, x, y);
 
 	for(Container * container : childContainers) {
 		if(container->active && x_in_region(x, y, container->actualX, container->actualY, container->actualWidth, container->actualHeight)) {
-			outcome = CONTAINER_INTERACTED_WITH;
-			if(container->onClicked_(button, x, y, outcome)) {
+			if(container->onClicked_(button, x-container->actualX, y-container->actualY, outcome)) {
 				return true;
 			}
 			return false;
@@ -60,12 +64,16 @@ bool Container::onMouseMoved_(unsigned int x, unsigned int y, float pressure, Ev
 		return false;
 	}
 
-	onMouseMoved(x-actualX, y-actualY, pressure);
+	if(!x_in_region(x, y, 0, 0, actualWidth, actualHeight)) {
+		return false;
+	}
+
+	outcome = CONTAINER_INTERACTED_WITH;
+	onMouseMoved(x, y, pressure);
 
 	for(Container * container : childContainers) {
 		if(container->active && x_in_region(x, y, container->actualX, container->actualY, container->actualWidth, container->actualHeight)) {
-			outcome = CONTAINER_INTERACTED_WITH;
-			if(container->onMouseMoved_(x, y, pressure, outcome)) {
+			if(container->onMouseMoved_(x-container->actualX, y-container->actualY, pressure, outcome)) {
 				return true;
 			}
 			return false;
@@ -93,12 +101,16 @@ bool Container::onScroll_(unsigned int x, unsigned int y, int scrollY, EventHand
 	if(!active) {
 		return false;
 	}
+
+	if(!x_in_region(x, y, actualX, actualY, actualWidth, actualHeight)) {
+		return false;
+	}
 	
-	onMouseMoved(x-actualX, y-actualY, scrollY);
+	outcome = CONTAINER_INTERACTED_WITH;
+	onMouseMoved(x, y, scrollY);
 
 	for(Container * container : childContainers) {
 		if(container->active && x_in_region(x, y, container->actualX, container->actualY, container->actualWidth, container->actualHeight)) {
-			outcome = CONTAINER_INTERACTED_WITH;
 			if(container->onScroll_(x, y, scrollY, outcome)) {
 				return true;
 			}

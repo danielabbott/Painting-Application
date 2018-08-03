@@ -17,11 +17,18 @@ class Canvas;
 class Widget {
 	friend Container;
 	friend bool draw_ui(bool);
-	friend void mouse_clicked(unsigned int, unsigned int, unsigned int, bool);
+	friend void mouse_clicked(unsigned int, unsigned int, unsigned int, bool); // TODO unfriend
+	friend void setAbsWindowCoords(Container *, unsigned int, unsigned int);
+
+	// Relative to the top-left of the parent
+	unsigned int actualX = 0, actualY = 0;
 
 	// Relative to the top-left of the window
-	unsigned int actualX = 0, actualY = 0;
+	unsigned int actualWindowX = 0, actualWindowY = 0;
+	
 	unsigned int actualWidth = 0, actualHeight = 0;
+
+	Widget * parent = nullptr;
 
 
 protected:
@@ -41,14 +48,28 @@ public:
 
 	uint32_t getActualX() { return actualX; }
 	uint32_t getActualY() { return actualY; }
+	uint32_t getActualWindowX() { return actualWindowX; }
+	uint32_t getActualWindowY() { return actualWindowY; }
 	uint32_t getActualWidth() { return actualWidth; }
 	uint32_t getActualHeight() { return actualHeight; }
+
+	Widget * getParent() { return parent; }
 	
 	// Call this after the widget has been added to a Container
+	// Coordinates are relative to the top-left of the window
 	void getArea(unsigned int & x_, unsigned int & y_, unsigned int & width, unsigned int & height)
 	{
 		x_ = actualX;
 		y_ = actualY;
+
+		Widget * next = parent;
+		while(next) {
+			x_ += next->actualX;
+			y_ += next->actualY;
+
+			next = next->parent;
+		}
+
 		width = actualWidth;
 		height = actualHeight;
 	}
@@ -99,6 +120,8 @@ public:
 };
 
 class Container : public Widget {
+	friend void setAbsWindowCoords(Container *, unsigned int, unsigned int);
+
 public:
 
 	enum LayoutManager {
@@ -116,9 +139,9 @@ public:
 
 		// Preferred x,y determine which border is to be used
 		// x/y=0: left/top
-		// x/y=2: right/bottom
 		// x/y=1: centre
-		// Preferred width and height of container are ignored
+		// x/y=2: right/bottom
+		// Preferred width and height of container are ignored if it is in the centre
 		BORDER
 	};
 
@@ -131,7 +154,7 @@ private:
 	std::vector<Container *> childContainers;
 	LayoutManager layoutManager;
 
-	void draw(std::vector<Canvas *> & canvases);
+	void draw(std::vector<Canvas *> & canvases, unsigned int xOffset=0, unsigned int yOffset=0);
 	void findCanvases(std::vector<Canvas *> & canvases);
 
 public:
@@ -142,7 +165,7 @@ public:
 
 	virtual uint32_t getBackGroundColour() override { return colour; }
 
-
+	// TODO: This depends on the layout manager. it will be different for FLOW_*
 	virtual unsigned int getWidth()  override { return w; }
 	virtual unsigned int getHeight() override { return h; }
 
@@ -161,7 +184,7 @@ public:
 
 // For menus, etc. which need to be layered over the rest of the GUI
 void set_root_container(Container *);
-void set_menu_overlay_root_container(Container *);
+void set_menu_overlay_root_container(Container *, unsigned int x, unsigned int y);
 
 class Label : public Widget {
 protected:
@@ -212,11 +235,11 @@ public:
 	Menu(std::vector<Widget *> widgets);
 };
 
-class SubMenu : public Menu
-{
-public:
-	SubMenu(std::vector<Widget *> widgets);
-};
+// class SubMenu : public Menu
+// {
+// public:
+// 	SubMenu(std::vector<Widget *> widgets);
+// };
 
 class MenuItem : public Button
 {

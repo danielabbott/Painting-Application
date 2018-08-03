@@ -695,9 +695,7 @@ bool Canvas::onClicked(unsigned int button, unsigned int x, unsigned int y)
 	if(button == 0) {
 		penDown = true;
 
-		if(penDown) {
-			cursorCoordsToCanvasCoords(x, y, prevCanvasCoordX, prevCanvasCoordY);
-		}
+		cursorCoordsToCanvasCoords(x, y, prevCanvasCoordX, prevCanvasCoordY);
 	}
 	else if (button == 2) {
 		// Scroll wheel

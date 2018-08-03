@@ -32,6 +32,7 @@ int main(int argc, char ** argv)
 {
 
 	unsigned int glVer = 0;
+	unsigned int forceBitDepth = 0;
 
 	for(int i = 1; i < argc; i++) {
 		if(		argv[i][0] == '-' 
@@ -39,15 +40,31 @@ int main(int argc, char ** argv)
 			&& (argv[i][2] == 'L' || argv[i][2] == 'l'))
 		{
 			char n1 = argv[i][3];
-			char n2 = argv[i][4];
+			if(!n1 || n1 < '0' || n1 > '9') break;
 
-			if((n1 >= '3') && (n2 >= '0' && n2 <= '9')) {
+			char n2 = argv[i][4];
+			if(!n2 || n2 < '0' || n2 > '9') n2 = '0';
+
+			if((n1 == '3' && n2 >= '1') || n1 == '4') {
 				glVer = (n1-'0')*10 + n2-'0';
+				clog << "Using GL version: " << glVer << endl;
+			}
+			else {
+				clog << "GL version must be >= 3.1" << endl;
+			}
+		}
+		else if (argv[i][0] == '-' 
+			&& (argv[i][1] == 'B' || argv[i][1] == 'b'))
+		{
+			forceBitDepth = (unsigned int) strtoul (&argv[i][2], nullptr, 10);
+
+			if(forceBitDepth) {
+				clog << "Using bit depth: " << forceBitDepth << endl;
 			}
 		}
 	}
 
-	create_window(640, 480, glVer);
+	create_window(640, 480, glVer, forceBitDepth);
 	create_opengl_timer();
 
 	try {
@@ -65,18 +82,19 @@ int main(int argc, char ** argv)
 
 
 	MyButton button = MyButton("press me");
-	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &button }, 0, 0, 640, 14, 0xff202020, UI::Container::NONE);
+	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &button }, 1, 0, 0, 14, 0xff202020, UI::Container::NONE);
 
-	UI::Label lbl = UI::Label("hiya");
+	// UI::Label lbl = UI::Label("hiya");
+	MyButton lbl = MyButton("hiya");
 	UI::Menu menu = UI::Menu(vector<UI::Widget *> { &lbl });
 
 	UI::MenuItem button2 = UI::MenuItem("12345", &menu);
-	UI::MenuBar container2 = UI::MenuBar(vector<UI::Widget *> { &button2 }, 0, 480-14, 640, 14, 0xff404040, UI::Container::NONE);
+	UI::MenuBar container2 = UI::MenuBar(vector<UI::Widget *> { &button2 }, 1, 2, 0, 14, 0xff404040, UI::Container::NONE);
 
-	Canvas canvas = Canvas(640, 480-14-14);
-	UI::Container canvasContainer = UI::Container( vector<UI::Widget *> { &canvas }, 0, 14, 640, 480-14-14, 0, UI::Container::NONE);
+	Canvas canvas = Canvas(1, 1, 0, 0);
 
-	UI::Container root = UI::Container(vector<UI::Widget *> { &container,&canvasContainer,&container2 }, 0, 14, 640, 480-14-14, 0, UI::Container::NONE);
+
+	UI::Container root = UI::Container(vector<UI::Widget *> { &container,&canvas,&container2 }, 0, 0, 640, 480, 0, UI::Container::BORDER);
 	set_root_container(&root);
 
 
@@ -94,13 +112,12 @@ int main(int argc, char ** argv)
 
 		if(redrawn) {
 			swap_buffers();
+			glFinish();
 
 			if(time) {
 				clog << "Time to update: " << setprecision(3) << (time / 1000000.0f) << " ms" << endl;
 			}
 		}
-
-		wait_for_input();
 
 		// Limit frame rate to 30 fps when user is moving the mouse/stylus
 		auto now = chrono::high_resolution_clock::now();
@@ -112,6 +129,9 @@ int main(int argc, char ** argv)
 		else {
 			lastUpdateTime = now;
 		}
+
+		wait_for_input();
+
 
 	}
 

@@ -74,7 +74,7 @@ static void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severit
 	assert(type != GL_DEBUG_TYPE_ERROR_ARB);
 }
 
-void create_window(unsigned int width, unsigned int height, unsigned int glVer)
+void create_window(unsigned int width, unsigned int height, unsigned int glVer, unsigned int forceBitDepth)
 {
 	if (!glfwInit())
         throw runtime_error("Error initialising GLFW library");
@@ -98,6 +98,19 @@ void create_window(unsigned int width, unsigned int height, unsigned int glVer)
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // For OpenGL 3.2+ only
 	}
 
+	if(forceBitDepth) {
+		glfwWindowHint(GLFW_RED_BITS, forceBitDepth);
+		glfwWindowHint(GLFW_GREEN_BITS, forceBitDepth);
+		glfwWindowHint(GLFW_BLUE_BITS, forceBitDepth);
+	}
+	else {
+		const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+		glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+		glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+		clog << "Red: " << mode->redBits << " bits, Green: " <<  mode->greenBits << " bits, Blue: " <<  mode->blueBits << " bits" << endl;
+	}
+
 	glfwWindowHint(GLFW_DEPTH_BITS, 0);
 	glfwWindowHint(GLFW_STENCIL_BITS, 0);
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
@@ -109,7 +122,7 @@ void create_window(unsigned int width, unsigned int height, unsigned int glVer)
         glfwTerminate();
         throw runtime_error("Error creating window");
     }
-    glfwSwapInterval(0);
+    glfwSwapInterval(1);
 
     glfwMakeContextCurrent(window);
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
@@ -120,6 +133,9 @@ void create_window(unsigned int width, unsigned int height, unsigned int glVer)
 
 	// All colours are stored in the linear colour space, OpenGL will convert the colours to srgb when drawing the canvas on the window
 	glEnable(GL_FRAMEBUFFER_SRGB);
+
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	if (GLAD_GL_ARB_debug_output) {
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
@@ -208,10 +224,10 @@ void assign_stylus_motion_callback(stylus_motion_callback callback)
 //
 
 static mouse_motion_callback mouseMotionCallback = nullptr;
-
 static void run_mouse_motion_callback(GLFWwindow * window, double x, double y)
 {
 	(void)window;
+
 	if(mouseMotionCallback) {
 		mouseMotionCallback((unsigned int) x, (unsigned int) y);
 	}

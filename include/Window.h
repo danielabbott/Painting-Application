@@ -1,7 +1,7 @@
 #pragma once
 
 // Creates a GLFW window, finds a graphics tablet, and assigns input handlers (see Input.cpp) for the input devices
-void create_window(unsigned int width, unsigned int height, unsigned int glVersion = 0);
+void create_window(unsigned int width, unsigned int height, unsigned int glVersion = 0, unsigned int forceBitDepth = 0);
 
 
 void find_tablets();

@@ -16,22 +16,63 @@ static bool globalDirtyFlag = true;
 
 static Container * rootContainer = nullptr;
 static Container * rootContainer2 = nullptr;
+static unsigned int rootContainer2X, rootContainer2Y;
 
-void set_root_container(Container * c) { rootContainer = c; rootContainer->bake(); }
-void set_menu_overlay_root_container(Container * c) { rootContainer2 = c; rootContainer2->bake(); }
+void setAbsWindowCoords(Container * c, unsigned int x=0, unsigned int y=0)
+{
+	x += c->getActualX();
+	y += c->getActualY();
+
+	c->actualWindowX = x;
+	c->actualWindowY = y;
+
+	for(Widget * widget : c->widgets) {
+		Container * container = dynamic_cast<Container *>(widget);
+		if(container) {
+			setAbsWindowCoords(container, x, y);
+		}
+		else {
+			widget->actualWindowX = x + widget->actualX;
+			widget->actualWindowY = y + widget->actualY;
+		}
+	}
+}
+
+void set_root_container(Container * c) 
+{ 
+	rootContainer = c; 
+	rootContainer->bake(); 
+	setAbsWindowCoords(rootContainer); 
+}
+void set_menu_overlay_root_container(Container * c, unsigned int x, unsigned int y)
+{ 
+	rootContainer2X = x;
+	rootContainer2Y = y;
+	rootContainer2 = c;
+	rootContainer2->bake(); 
+	setAbsWindowCoords(rootContainer2); 
+}
 
 // Each index corresponds to a mouse button
 Widget * widgetBeingClicked[3] = {};
+// Indexes in this array match the array above ^
+bool widgetBeingClickedIsInMenuOverlay[3];
 
 void Container::bake() 
 {
-	assert(layoutManager == NONE);
+	for(Widget * widget : widgets) {
+		widget->parent = this;
+		Container * container = dynamic_cast<Container *>(widget);
+		if(container) {
+			childContainers.push_back(container);
+			container->bake();
+		}
+	}
+
+	assert(layoutManager == NONE || layoutManager == BORDER);
 	if(layoutManager == NONE) {
 		actualWidth = w;
 		actualHeight = h;
-		actualX = x;
-		actualY = y; // TODO: parent should set this..
-
 
 		for(Widget * widget : widgets) {
 			widget->actualX = actualX + widget->x;
@@ -40,6 +81,222 @@ void Container::bake()
 			widget->actualHeight = widget->getHeight();
 		}
 	}
+	else if(layoutManager == BORDER) {
+		assert(widgets.size() <= 9);
+
+		actualWidth = w;
+		actualHeight = h;
+
+		// The size of the central area is determined first
+
+		unsigned int centreX = 0, centreY = 0, centreWidth = w, centreHeight = h;
+		bool corners[4] = {}; // TL, TR, BR, BL
+
+		for(Widget * widget : widgets) {
+			unsigned widgetWidth = widget->getWidth();
+
+			if(!widget->x) { // Widget on left
+				if(centreX < widgetWidth) {
+					centreX = widgetWidth;
+					centreWidth -= widgetWidth - centreX;
+				}
+
+				if(!widget->y) {
+					// This widget goes in the top left corner
+					corners[0] = true;
+				}
+				else if(widget->y >= 2) {
+					// This widget goes in the bottom left corner
+					corners[3] = true;
+				}
+			}
+			else if(widget->x >= 2) { // Widget on right
+				if(widgetWidth > actualWidth - centreWidth - centreX) {
+					centreWidth -= widgetWidth - (actualWidth - centreWidth - centreX);
+				}
+
+				if(!widget->y) {
+					// This widget goes in the top right corner
+					corners[1] = true;
+				}
+				else if(widget->y >= 2) {
+					// This widget goes in the bottom right corner
+					corners[2] = true;
+				}
+			}
+
+			unsigned widgetHeight = widget->getHeight();
+
+			if(!widget->y) { // Widget on top
+				if(centreY < widgetHeight) {
+					centreHeight -= widgetHeight - centreY;
+					centreY = widgetHeight;
+				}
+
+				if(!widget->x) {
+					// This widget goes in the top left corner
+					corners[0] = true;
+				}
+				else if(widget->x >= 2) {
+					// This widget goes in the top right corner
+					corners[1] = true;
+				}
+			}
+			else if(widget->y >= 2) { // Widget on bottom
+				if(widgetHeight > actualHeight - centreHeight - centreY) {
+					centreHeight -= widgetHeight - (actualHeight - centreHeight - centreY);
+				}
+
+				if(!widget->x) {
+					// This widget goes in the bottom left corner
+					corners[3] = true;
+				}
+				else if(widget->x >= 2) {
+					// This widget goes in the bottom right corner
+					corners[2] = true;
+				}
+			}
+		}
+
+		// Now set the widget positions
+
+		for(Widget * widget : widgets) {
+			if(!widget->x) {
+				// left
+
+				if(!widget->y) {
+					// top left
+
+					widget->actualX = 0;
+					widget->actualY = 0;
+					widget->actualWidth = centreX;
+					widget->actualHeight = centreY;					
+				}
+				else if (widget->y == 1) {
+					// centre left
+
+					widget->actualX = 0;
+					widget->actualWidth = centreX;
+
+					if(corners[0]) { // TL corner
+						widget->actualY = centreY;
+					}
+					else {
+						widget->actualY = 0;
+					}
+
+					if(corners[3]) { // BL corner
+						widget->actualHeight = centreY + centreHeight - widget->actualY;
+					}
+					else {
+						widget->actualHeight = actualHeight - widget->actualY;
+					}
+				}
+				else if (widget->y >= 2) {
+					// bottom left
+
+					widget->actualX = 0;
+					widget->actualY = centreY + centreHeight;
+					widget->actualWidth = centreX;
+					widget->actualHeight = actualHeight - centreY - centreHeight;	
+				}
+			}
+			else if (widget->x == 1) {
+				// left-right centre
+
+				if(!widget->y) {
+					// centre top
+
+					widget->actualY = 0;
+					widget->actualHeight = centreY;
+
+					if(corners[0]) {
+						widget->actualX = centreX;
+					}
+					else {
+						widget->actualX = 0;
+					}
+
+					if(corners[1]) {
+						widget->actualWidth = actualWidth - widget->actualX - (actualWidth - centreX - centreWidth);
+					}
+					else {
+						widget->actualWidth = actualWidth - widget->actualX;
+					}
+				}
+				else if (widget->y == 1) {
+					// centre
+
+					widget->actualX = centreX;
+					widget->actualWidth = centreWidth;
+					widget->actualY = centreY;
+					widget->actualHeight = centreHeight;
+				}
+				else {
+					// centre bottom
+
+					widget->actualY = centreY + centreHeight;
+					widget->actualHeight = actualHeight - centreY - centreHeight;
+
+					if(corners[3]) {
+						widget->actualX = centreX;
+					}
+					else {
+						widget->actualX = 0;
+					}
+
+					if(corners[2]) {
+						widget->actualWidth = actualWidth - widget->actualX - (actualWidth - centreX - centreWidth);
+					}
+					else {
+						widget->actualWidth = actualWidth - widget->actualX;
+					}
+				}
+			}
+			else if (widget->x >= 2) {
+				// right
+
+				if(!widget->y) {
+					// top right
+
+					widget->actualX = centreX + centreWidth;
+					widget->actualY = 0;
+					widget->actualWidth = actualWidth - centreX - centreWidth;
+					widget->actualHeight = centreY;					
+				}
+				else if (widget->y == 1) {
+					// centre right
+
+					widget->actualX = centreX + centreWidth;
+					widget->actualWidth = actualWidth - centreX - centreWidth;
+
+					if(corners[1]) { // TR corner
+						widget->actualY = centreY;
+					}
+					else {
+						widget->actualY = 0;
+					}
+
+					if(corners[2]) { // BR corner
+						widget->actualHeight = centreY + centreHeight - widget->actualY;
+					}
+					else {
+						widget->actualHeight = actualHeight - widget->actualY;
+					}
+				}
+				else if (widget->y >= 2) {
+					// bottom right
+
+					widget->actualX = centreX + centreWidth;
+					widget->actualY = centreY + centreHeight;
+					widget->actualWidth = actualWidth - centreX - centreWidth;
+					widget->actualHeight = actualHeight - centreY - centreHeight;	
+				}
+			}
+		}
+
+	}
+
 	// TODO
 	// else if(layoutManager == FLOW_ACROSS) {
 	// 	actualWidth = width_;
@@ -58,14 +315,6 @@ void Container::bake()
 	// 		widget->actualHeight = h;
 	// 	}
 	// }
-
-	for(Widget * widget : widgets) {
-		Container * container = dynamic_cast<Container *>(widget);
-		if(container) {
-			childContainers.push_back(container);
-			container->bake();
-		}
-	}
 }
 
 struct Vertex {
@@ -116,8 +365,11 @@ void mouse_clicked(unsigned int button, unsigned int x, unsigned int y, bool but
 	if(button > 2) return;
 
 	if(buttonDown) {
+		widgetBeingClicked[button] = nullptr;
+		widgetBeingClickedIsInMenuOverlay[button] = true;
 		Container::EventHandlerOutcome outcome = Container::NOTHING;
-		if(rootContainer2 && rootContainer2->onClicked_(button, x, y, outcome)) {
+
+		if(rootContainer2 && rootContainer2->onClicked_(button, x-rootContainer2X-rootContainer2->getActualX(), y-rootContainer2Y-rootContainer2->getActualY(), outcome)) {
 			globalDirtyFlag = true;
 		}
 
@@ -128,7 +380,8 @@ void mouse_clicked(unsigned int button, unsigned int x, unsigned int y, bool but
 			}
 
 			if(rootContainer) {
-				if(rootContainer->onClicked_(button, x, y, outcome)) {
+				widgetBeingClickedIsInMenuOverlay[button] = false;
+				if(rootContainer->onClicked_(button, x-rootContainer->getActualX(), y-rootContainer->getActualY(), outcome)) {
 					globalDirtyFlag = true;
 				}
 			}
@@ -136,7 +389,12 @@ void mouse_clicked(unsigned int button, unsigned int x, unsigned int y, bool but
 	}
 	else {
 		if(widgetBeingClicked[button]) {
-			if(x_in_region(x, y, widgetBeingClicked[button]->actualX, widgetBeingClicked[button]->actualY, widgetBeingClicked[button]->actualWidth, widgetBeingClicked[button]->actualHeight)) {
+			if(widgetBeingClickedIsInMenuOverlay[button]) {
+				x -= rootContainer2X;
+				y -= rootContainer2Y;
+			}
+			if(x_in_region(x, y, widgetBeingClicked[button]->getActualWindowX(), widgetBeingClicked[button]->getActualWindowY(), widgetBeingClicked[button]->actualWidth, widgetBeingClicked[button]->actualHeight)) {
+				
 				if(widgetBeingClicked[button]->onMouseButtonReleased(button)) {
 					globalDirtyFlag = true;
 				}
@@ -154,12 +412,12 @@ void mouse_clicked(unsigned int button, unsigned int x, unsigned int y, bool but
 void stylus_moved(unsigned int x, unsigned int y, float pressure)
 {
 	Container::EventHandlerOutcome outcome = Container::NOTHING;
-	if(rootContainer2 && rootContainer2->onMouseMoved_(x, y, pressure, outcome)) {
+	if(rootContainer2 && rootContainer2->onMouseMoved_(x-rootContainer2X-rootContainer2->getActualX(), y-rootContainer2Y-rootContainer2->getActualY(), pressure, outcome)) {
 		globalDirtyFlag = true;
 	}
 
 	if(rootContainer && outcome == Container::NOTHING) {
-		if(rootContainer->onMouseMoved_(x, y, pressure, outcome)) {
+		if(rootContainer->onMouseMoved_(x-rootContainer->getActualX(), y-rootContainer->getActualY(), pressure, outcome)) {
 			globalDirtyFlag = true;
 		}
 	}
@@ -168,12 +426,12 @@ void stylus_moved(unsigned int x, unsigned int y, float pressure)
 void mouse_moved(unsigned int x, unsigned int y)
 {
 	Container::EventHandlerOutcome outcome = Container::NOTHING;
-	if(rootContainer2 && rootContainer2->onMouseMoved_(x, y, -1, outcome)) {
+	if(rootContainer2 && rootContainer2->onMouseMoved_(x-rootContainer2X-rootContainer2->getActualX(), y-rootContainer2Y-rootContainer2->getActualY(), -1, outcome)) {
 		globalDirtyFlag = true;
 	}
 
 	if(rootContainer && outcome == Container::NOTHING) {
-		if(rootContainer->onMouseMoved_(x, y, -1, outcome)) {
+		if(rootContainer->onMouseMoved_(x-rootContainer->getActualX(), y-rootContainer->getActualY(), -1, outcome)) {
 			globalDirtyFlag = true;
 		}
 	}
@@ -184,12 +442,12 @@ void scroll(unsigned int mouseX, unsigned int mouseY, int x, int y)
 	(void)x;
 
 	Container::EventHandlerOutcome outcome = Container::NOTHING;
-	if(rootContainer2 && rootContainer2->onScroll_(mouseX, mouseY, y, outcome)) {
+	if(rootContainer2 && rootContainer2->onScroll_(mouseX-rootContainer2X-rootContainer2->getActualX(), mouseY-rootContainer2Y-rootContainer2->getActualY(), y, outcome)) {
 		globalDirtyFlag = true;
 	}
 
 	if(rootContainer && outcome == Container::NOTHING) {
-		if(rootContainer->onScroll_(mouseX, mouseY, y, outcome)) {
+		if(rootContainer->onScroll_(mouseX-rootContainer->getActualX(), mouseY-rootContainer->getActualY(), y, outcome)) {
 			globalDirtyFlag = true;
 		}
 	}
@@ -289,18 +547,20 @@ static void add_quad(uint16_t x, uint16_t y, uint16_t w, uint16_t h,
 	indexData[indexDataNextIndex++] = vertexDataNextIndex-4;
 }
 
-void Container::draw(vector<Canvas *> & canvases)
+void Container::draw(vector<Canvas *> & canvases, unsigned int xOffset, unsigned int yOffset)
 {
 	if(!active) {
 		return;
 	}
 
+	xOffset += actualX;
+	yOffset += actualY;
+
 	Font::FontGlyph const& nullGlyph = asciiAtlas.glyphs[0];
 
 	uint32_t colour = getBackGroundColour();
-	if(this != rootContainer && colour & 0xff000000) {
-		// Root container background colour is done through glClear
-		add_quad(actualX, actualY, actualWidth, actualHeight, nullGlyph.x*256, nullGlyph.y*256, 0, 0, colour);
+	if(colour & 0xff000000) {
+		add_quad(xOffset, yOffset, actualWidth, actualHeight, nullGlyph.x*256, nullGlyph.y*256, 0, 0, colour);
 	}
 
 	for(Widget * widget : widgets) {
@@ -315,7 +575,7 @@ void Container::draw(vector<Canvas *> & canvases)
 
 		colour = widget->getBackGroundColour();
 		if(colour & 0xff000000) {
-			add_quad(widget->actualX, widget->actualY, widget->actualWidth, widget->actualHeight, nullGlyph.x*256, nullGlyph.y*256, 0, 0, colour);
+			add_quad(widget->actualX + xOffset, widget->actualY + yOffset, widget->actualWidth, widget->actualHeight, nullGlyph.x*256, nullGlyph.y*256, 0, 0, colour);
 		}
 
 		string const& text = widget->getText();
@@ -327,7 +587,7 @@ void Container::draw(vector<Canvas *> & canvases)
 			for(char c : text) {
 				if(c > 0/* && c < 128*/) {
 					Font::FontGlyph const& glyph = asciiAtlas.glyphs[(int)c];
-					add_quad(textX / 64 + glyph.bitmapLeft, textY - glyph.bitmapTop, glyph.w, glyph.h, glyph.x*256, glyph.y*256, glyph.w*256, glyph.h*256, textColour);
+					add_quad(textX / 64 + glyph.bitmapLeft + xOffset, textY - glyph.bitmapTop + yOffset, glyph.w, glyph.h, glyph.x*256, glyph.y*256, glyph.w*256, glyph.h*256, textColour);
 					textX += glyph.advanceX;
 				}
 				else {
@@ -338,7 +598,7 @@ void Container::draw(vector<Canvas *> & canvases)
 	}
 
 	for(Container * c : childContainers) {
-		c->draw(canvases);
+		c->draw(canvases, xOffset, yOffset);
 	}
 }
 
@@ -362,9 +622,9 @@ bool draw_ui(bool forceRedraw)
 		// Create vertex/index data (store data directly to OpenGL-mapped memory)
 
 		bind_default_framebuffer();
+
 		glClearColor(0.1f, 0.1f, 0.1f, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
-
 
 		vector<Canvas *> canvases;
 
@@ -392,7 +652,7 @@ bool draw_ui(bool forceRedraw)
 					rootContainer->draw(canvases);
 				}
 				if(rootContainer2) {
-					rootContainer2->draw(canvases);
+					rootContainer2->draw(canvases, rootContainer2X, rootContainer2Y);
 				}
 			} catch(exception & e) {
 				static bool a = false;
