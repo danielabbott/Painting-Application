@@ -78,8 +78,9 @@ void Container::bake()
 		for(Widget * widget : widgets) {
 			widget->actualX = actualX + widget->x;
 			widget->actualY = actualY + widget->y;
-			widget->actualWidth = widget->getWidth();
-			widget->actualHeight = widget->getHeight();
+
+			// Set actual width and height to widget's preferred dimensions
+			widget->getDimensions(widget->actualWidth, widget->actualHeight);
 		}
 	}
 	else if(layoutManager == BORDER) {
@@ -94,7 +95,8 @@ void Container::bake()
 		bool corners[4] = {}; // TL, TR, BR, BL
 
 		for(Widget * widget : widgets) {
-			unsigned widgetWidth = widget->getWidth();
+			unsigned int widgetWidth, widgetHeight;
+			widget->getDimensions(widgetWidth, widgetHeight);
 
 			if(!widget->x) { // Widget on left
 				if(centreX < widgetWidth) {
@@ -125,8 +127,6 @@ void Container::bake()
 					corners[2] = true;
 				}
 			}
-
-			unsigned widgetHeight = widget->getHeight();
 
 			if(!widget->y) { // Widget on top
 				if(centreY < widgetHeight) {
@@ -299,91 +299,104 @@ void Container::bake()
 	}
 
 	else if(layoutManager == FLOW_DOWN) {
-		actualWidth = getWidth();
-		actualHeight = getHeight();
+		getDimensions(actualWidth, actualHeight);
 
 		unsigned int widgetY = 0;
 		for(Widget * widget : widgets) {
 			widget->actualX = 0;
 			widget->actualY = widgetY;
 
-			widgetY += widget->getHeight();
+			unsigned int w,h;
+			widget->getDimensions(w,h);
+			widgetY += h;
 		}
 	}
 
 	// TODO
 }
 
-unsigned int Container::getWidth()
+void Container::getDimensions(unsigned int & width, unsigned int & height)
 {
 	if(w) {
-		return w;
+		width = w;
+	}
+
+	if(h) {
+		height = h;
+
+		if(w) {
+			return;
+		}
 	}
 
 	if(layoutManager == BORDER) {
 		// TODO Work out minimum width required
-		return 0;
+		if(!w) {
+			width = 0;
+		}
+		if(!h) {
+			height = 0;
+		}
+		return;
 	}
 	else if(layoutManager == NONE) {
 		unsigned int minWidth = 0;
-
-		for(Widget * widget : widgets) {
-			unsigned int rightMostPoint = widget->getActualX() + widget->getWidth();
-			if(rightMostPoint > minWidth) {
-				minWidth = rightMostPoint;
-			}
-		}
-
-		return minWidth;
-	}
-	else if(layoutManager == FLOW_DOWN) {
-		unsigned int maxWidth = 0;
-
-		for(Widget * widget : widgets) {
-			unsigned int wWidth = widget->getWidth();
-			if(wWidth > maxWidth) {
-				maxWidth = wWidth;
-			}
-		}
-
-		return maxWidth;
-	}
-	// TODO
-	return 0;
-}
-unsigned int Container::getHeight()
-{ 
-	if(h) {
-		return h;
-	}
-
-	if(layoutManager == BORDER) {
-		// TODO Work out minimum height required
-		return 0;
-	}
-	else if(layoutManager == NONE) {
 		unsigned int minHeight = 0;
 
 		for(Widget * widget : widgets) {
-			unsigned int bottomMostPoint = widget->getActualY() + widget->getHeight();
+			unsigned int w,h;
+			widget->getDimensions(w,h);
+
+			unsigned int rightMostPoint = widget->getActualX() + w;
+			if(rightMostPoint > minWidth) {
+				minWidth = rightMostPoint;
+			}
+
+			unsigned int bottomMostPoint = widget->getActualY() + h;
 			if(bottomMostPoint > minHeight) {
 				minHeight = bottomMostPoint;
 			}
 		}
 
-		return minHeight;
+		if(!w) {
+			width = minWidth;
+		}
+
+		if(!h) {
+			height = minHeight;
+		}
+
+		return;
 	}
 	else if(layoutManager == FLOW_DOWN) {
+		unsigned int maxWidth = 0;
 		unsigned int height = 0;
 
 		for(Widget * widget : widgets) {
-			height += widget->getHeight();
+			unsigned int w,h;
+			widget->getDimensions(w,h);
+
+			unsigned int wWidth = w;
+			if(wWidth > maxWidth) {
+				maxWidth = wWidth;
+			}
+
+			height += h;
 		}
 
-		return height;
+		if(!w) {
+			width = maxWidth;
+		}
+
+		if(!h) {
+			height = height;
+		}
 	}
+	else {
 	// TODO
-	return 0;
+		assert(0);
+	}
+	return;
 }
 
 struct Vertex {

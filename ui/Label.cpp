@@ -28,12 +28,10 @@ std::string const& Label::getText() {
 	return widgetText;
 }
 
-unsigned int Label::getWidth() {
-	return textWidth;
-}
-
-unsigned int Label::getHeight() {
-	return 14;
+void Label::getDimensions(unsigned int & width, unsigned int & height)
+{
+	width = textWidth;
+	height = 14;
 }
 
 

@@ -89,9 +89,12 @@ public:
 	virtual uint32_t getTextColour() { return 0xffffffff; } 
 
 	virtual ~Widget(){}
-	
-	virtual unsigned int getWidth() { return w; }
-	virtual unsigned int getHeight() { return h; }
+
+	virtual void getDimensions(unsigned int & width, unsigned int & height)
+	{
+		width = w;
+		height = h;
+	}
 
 
 	// Event handles return true if the widget (or any other widget) must now be redrawn
@@ -165,9 +168,9 @@ public:
 
 	virtual uint32_t getBackGroundColour() override { return colour; }
 
-	// TODO: This depends on the layout manager. it will be different for FLOW_*
-	virtual unsigned int getWidth();
-	virtual unsigned int getHeight();
+	// Returns either w/h variable if w/h is non-zero
+	// If w/h is 0, returns minimum size required to fit widgets (depends on layout manager)
+	virtual void getDimensions(unsigned int & width, unsigned int & height);
 
 	enum EventHandlerOutcome {
 		NOTHING, CONTAINER_INTERACTED_WITH, WIDGET_INTERACTED_WITH
@@ -194,8 +197,7 @@ public:
 	Label(std::string text_, unsigned int x, unsigned int y);
 	Label(std::string text_);
 	virtual std::string const& getText() override;
-	virtual unsigned int getWidth() override;
-	virtual unsigned int getHeight() override;
+	virtual void getDimensions(unsigned int & width, unsigned int & height) override;
 };
 
 class Button : public Label {
