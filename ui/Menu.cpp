@@ -44,8 +44,7 @@ bool MenuItem::onMouseButtonReleased(unsigned int button)
 	}
 }
 
-// TODO: FLOW_DOWN
-Menu::Menu(std::vector<Widget *> widgets) : Container(widgets, 0,0,100,200,0xff505050, UI::Container::NONE) {}
+Menu::Menu(std::vector<Widget *> widgets) : Container(widgets, 0,0,100,200,0xff505050, UI::Container::FLOW_DOWN) {}
 
 // SubMenu::SubMenu(std::vector<Widget *> widgets) : Menu(widgets) {}
 

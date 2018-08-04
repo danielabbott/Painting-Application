@@ -69,7 +69,8 @@ void Container::bake()
 		}
 	}
 
-	assert(layoutManager == NONE || layoutManager == BORDER);
+	assert(layoutManager == NONE || layoutManager == BORDER || layoutManager == FLOW_DOWN);
+
 	if(layoutManager == NONE) {
 		actualWidth = w;
 		actualHeight = h;
@@ -297,24 +298,92 @@ void Container::bake()
 
 	}
 
+	else if(layoutManager == FLOW_DOWN) {
+		actualWidth = getWidth();
+		actualHeight = getHeight();
+
+		unsigned int widgetY = 0;
+		for(Widget * widget : widgets) {
+			widget->actualX = 0;
+			widget->actualY = widgetY;
+
+			widgetY += widget->getHeight();
+		}
+	}
+
 	// TODO
-	// else if(layoutManager == FLOW_ACROSS) {
-	// 	actualWidth = width_;
-	// 	actualHeight = height_;
+}
 
-	// 	unsigned int widgetX = 0;
-	// 	for(Widget * widget : widgets) {
-	// 		widget->actualX = actualX + widgetX;
-	// 		widget->actualY = actualY;
+unsigned int Container::getWidth()
+{
+	if(w) {
+		return w;
+	}
 
-	// 		unsigned int w = widget->getWidth();
-	// 		unsigned int h = widget->getHeight();
+	if(layoutManager == BORDER) {
+		// TODO Work out minimum width required
+		return 0;
+	}
+	else if(layoutManager == NONE) {
+		unsigned int minWidth = 0;
 
-	// 		widgetX += w;
-	// 		widget->actualWidth = w;
-	// 		widget->actualHeight = h;
-	// 	}
-	// }
+		for(Widget * widget : widgets) {
+			unsigned int rightMostPoint = widget->getActualX() + widget->getWidth();
+			if(rightMostPoint > minWidth) {
+				minWidth = rightMostPoint;
+			}
+		}
+
+		return minWidth;
+	}
+	else if(layoutManager == FLOW_DOWN) {
+		unsigned int maxWidth = 0;
+
+		for(Widget * widget : widgets) {
+			unsigned int wWidth = widget->getWidth();
+			if(wWidth > maxWidth) {
+				maxWidth = wWidth;
+			}
+		}
+
+		return maxWidth;
+	}
+	// TODO
+	return 0;
+}
+unsigned int Container::getHeight()
+{ 
+	if(h) {
+		return h;
+	}
+
+	if(layoutManager == BORDER) {
+		// TODO Work out minimum height required
+		return 0;
+	}
+	else if(layoutManager == NONE) {
+		unsigned int minHeight = 0;
+
+		for(Widget * widget : widgets) {
+			unsigned int bottomMostPoint = widget->getActualY() + widget->getHeight();
+			if(bottomMostPoint > minHeight) {
+				minHeight = bottomMostPoint;
+			}
+		}
+
+		return minHeight;
+	}
+	else if(layoutManager == FLOW_DOWN) {
+		unsigned int height = 0;
+
+		for(Widget * widget : widgets) {
+			height += widget->getHeight();
+		}
+
+		return height;
+	}
+	// TODO
+	return 0;
 }
 
 struct Vertex {

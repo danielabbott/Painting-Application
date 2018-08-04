@@ -166,8 +166,8 @@ public:
 	virtual uint32_t getBackGroundColour() override { return colour; }
 
 	// TODO: This depends on the layout manager. it will be different for FLOW_*
-	virtual unsigned int getWidth()  override { return w; }
-	virtual unsigned int getHeight() override { return h; }
+	virtual unsigned int getWidth();
+	virtual unsigned int getHeight();
 
 	enum EventHandlerOutcome {
 		NOTHING, CONTAINER_INTERACTED_WITH, WIDGET_INTERACTED_WITH
