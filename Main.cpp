@@ -85,8 +85,10 @@ int main(int argc, char ** argv)
 	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &button }, 1, 0, 0, 14, 0xff202020, UI::Container::NONE);
 
 	// UI::Label lbl = UI::Label("hiya");
-	MyButton lbl = MyButton("hiya");
-	UI::Menu menu = UI::Menu(vector<UI::Widget *> { &lbl });
+	MyButton b1 = MyButton("1");
+	MyButton b2 = MyButton("2");
+	MyButton b3 = MyButton("333333333");
+	UI::Menu menu = UI::Menu(vector<UI::Widget *> { &b1, &b2, &b3 });
 
 	UI::MenuItem button2 = UI::MenuItem("12345", &menu);
 	UI::MenuBar container2 = UI::MenuBar(vector<UI::Widget *> { &button2 }, 1, 2, 0, 14, 0xff404040, UI::Container::NONE);

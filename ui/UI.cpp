@@ -308,6 +308,9 @@ void Container::bake()
 
 			widget->getDimensions(widget->actualWidth, widget->actualHeight);
 			widgetY += widget->actualHeight;
+
+			// All widgets are the same width
+			widget->actualWidth = actualWidth;
 		}
 	}
 
@@ -369,7 +372,7 @@ void Container::getDimensions(unsigned int & width, unsigned int & height)
 	}
 	else if(layoutManager == FLOW_DOWN) {
 		unsigned int maxWidth = 0;
-		unsigned int height = 0;
+		unsigned int minHeight = 0;
 
 		for(Widget * widget : widgets) {
 			unsigned int w,h;
@@ -380,7 +383,7 @@ void Container::getDimensions(unsigned int & width, unsigned int & height)
 				maxWidth = wWidth;
 			}
 
-			height += h;
+			minHeight += h;
 		}
 
 		if(!w) {
@@ -388,7 +391,7 @@ void Container::getDimensions(unsigned int & width, unsigned int & height)
 		}
 
 		if(!h) {
-			height = height;
+			height = minHeight;
 		}
 	}
 	else {
