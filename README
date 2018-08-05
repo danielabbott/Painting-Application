@@ -1,5 +1,7 @@
-== TODO ==
-Better zooming
+A work-in-progress painting/sketching/drawing application.
+
+Supports Wacom tablets (and possibly other tablet brands) via the X11 (Linux) and WinTab (Windows) APIs.
+Tested with a Wacom Intuos Draw.
 
 == Dependencies ==
 
@@ -7,12 +9,16 @@ OpenGL 3.1 (headers included)
 	Supported Extensions:
 		GL_ARB_debug_output
 		GL_ARB_clear_texture
-		GL_ARB_get_program_binary
+		GL_ARB_get_program_binary (not currently used)
 		GL_ARB_timer_query
 		GL_ARB_texture_storage
 
-GLFW (included)
+GLFW (tested with 3.2.1)
 Glad (included)
-
+Freetype (tested with 2.8)
+zlib (tested with 1.2.11)
+libpng (tested with 1.6.35)
+GLM (tested with 0.9.9.0)
+* GLM is header-only. The headers are included in windows_include, no .dll is needed.
 
 
