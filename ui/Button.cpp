@@ -1,4 +1,7 @@
 #include <UI.h>
+#include <iostream>
+
+using namespace std;
 
 namespace UI {
 
@@ -12,6 +15,7 @@ bool Button::onClicked(unsigned int button, unsigned int x, unsigned int y)
 	(void)button;
 	(void)x;
 	(void)y;
+	clog << "Button press: " << widgetText << endl;
 	beingClicked = true;
 	return true;
 }
@@ -20,6 +24,7 @@ bool Button::onClicked(unsigned int button, unsigned int x, unsigned int y)
 bool Button::onMouseButtonReleased(unsigned int button)
 {
 	(void)button;
+	clog << "Button click released: " << widgetText << endl;
 	beingClicked = false;
 	return true;
 }
@@ -27,6 +32,7 @@ bool Button::onMouseButtonReleased(unsigned int button)
 bool Button::onMouseButtonReleasedOutsideWidget(unsigned int button)
 {
 	(void)button;
+	clog << "Button click released (outside of widget): " << widgetText << endl;
 	beingClicked = false;
 	return true;
 }

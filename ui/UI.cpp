@@ -306,9 +306,8 @@ void Container::bake()
 			widget->actualX = 0;
 			widget->actualY = widgetY;
 
-			unsigned int w,h;
-			widget->getDimensions(w,h);
-			widgetY += h;
+			widget->getDimensions(widget->actualWidth, widget->actualHeight);
+			widgetY += widget->actualHeight;
 		}
 	}
 
