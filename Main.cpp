@@ -78,7 +78,7 @@ int main(int argc, char ** argv)
 
 	UI::initialise_ui();
 
-	// TODO use border layout
+	
 
 
 	MyButton button1 = MyButton("press me");

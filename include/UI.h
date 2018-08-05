@@ -17,7 +17,6 @@ class Canvas;
 class Widget {
 	friend Container;
 	friend bool draw_ui(bool);
-	friend void mouse_clicked(unsigned int, unsigned int, unsigned int, bool); // TODO unfriend
 	friend void setAbsWindowCoords(Container *, unsigned int, unsigned int);
 
 	// Relative to the top-left of the parent

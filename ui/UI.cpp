@@ -513,7 +513,7 @@ void mouse_clicked(unsigned int button, unsigned int x, unsigned int y, bool but
 				x -= rootContainer2X;
 				y -= rootContainer2Y;
 			}
-			if(x_in_region(x, y, widgetBeingClicked[button]->getActualWindowX(), widgetBeingClicked[button]->getActualWindowY(), widgetBeingClicked[button]->actualWidth, widgetBeingClicked[button]->actualHeight)) {
+			if(x_in_region(x, y, widgetBeingClicked[button]->getActualWindowX(), widgetBeingClicked[button]->getActualWindowY(), widgetBeingClicked[button]->getActualWidth(), widgetBeingClicked[button]->getActualHeight())) {
 				
 				if(widgetBeingClicked[button]->onMouseButtonReleased(button)) {
 					globalDirtyFlag = true;
