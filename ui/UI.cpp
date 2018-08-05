@@ -12,6 +12,8 @@ using namespace std;
 
 namespace UI {
 
+static const unsigned int WIDGET_PADDING = 4;
+
 static bool globalDirtyFlag = true;
 
 static Container * rootContainer = nullptr;
@@ -68,8 +70,6 @@ void Container::bake()
 			container->bake();
 		}
 	}
-
-	assert(layoutManager == NONE || layoutManager == BORDER || layoutManager == FLOW_DOWN);
 
 	if(layoutManager == NONE) {
 		actualWidth = w;
@@ -307,14 +307,28 @@ void Container::bake()
 			widget->actualY = widgetY;
 
 			widget->getDimensions(widget->actualWidth, widget->actualHeight);
-			widgetY += widget->actualHeight;
+			widgetY += widget->actualHeight + WIDGET_PADDING;
 
 			// All widgets are the same width
 			widget->actualWidth = actualWidth;
 		}
 	}
 
-	// TODO
+	else if(layoutManager == FLOW_ACROSS) {
+		getDimensions(actualWidth, actualHeight);
+
+		unsigned int widgetX = 0;
+		for(Widget * widget : widgets) {
+			widget->actualX = widgetX;
+			widget->actualY = 0;
+
+			widget->getDimensions(widget->actualWidth, widget->actualHeight);
+			widgetX += widget->actualWidth + WIDGET_PADDING;
+
+			// All widgets are the same height
+			widget->actualHeight = actualHeight;
+		}
+	}
 }
 
 void Container::getDimensions(unsigned int & width, unsigned int & height)
@@ -383,7 +397,7 @@ void Container::getDimensions(unsigned int & width, unsigned int & height)
 				maxWidth = wWidth;
 			}
 
-			minHeight += h;
+			minHeight += h + WIDGET_PADDING;
 		}
 
 		if(!w) {
@@ -394,9 +408,29 @@ void Container::getDimensions(unsigned int & width, unsigned int & height)
 			height = minHeight;
 		}
 	}
-	else {
-	// TODO
-		assert(0);
+	else if(layoutManager == FLOW_ACROSS) {
+		unsigned int minWidth = 0;
+		unsigned int maxHeight = 0;
+
+		for(Widget * widget : widgets) {
+			unsigned int w,h;
+			widget->getDimensions(w,h);
+
+			unsigned int wHeight = h;
+			if(wHeight > maxHeight) {
+				maxHeight = wHeight;
+			}
+
+			minWidth += w + WIDGET_PADDING;
+		}
+
+		if(!w) {
+			width = minWidth;
+		}
+
+		if(!h) {
+			height = maxHeight;
+		}
 	}
 	return;
 }

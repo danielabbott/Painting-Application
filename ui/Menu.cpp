@@ -15,8 +15,8 @@ bool MenuItem::onMouseButtonReleased(unsigned int button)
 
 	Button::onMouseButtonReleased(button);
 
-	// Menu must be baked to get its height. It will be rebaked in set_menu_overlay_root_container .
-	menu->bake();
+	unsigned int menuWidth, menuHeight;
+	menu->getDimensions(menuWidth, menuHeight);
 
 	// Start by tying to fit the menu below the widget
 
@@ -27,7 +27,7 @@ bool MenuItem::onMouseButtonReleased(unsigned int button)
 	unsigned int miX, miY, miWidth, miHeight;
 	getArea(miX, miY, miWidth, miHeight);
 
-	unsigned int bottomOfMenu = miY + miHeight + menu->getActualHeight();
+	unsigned int bottomOfMenu = miY + miHeight + menuHeight;
 
 	if(bottomOfMenu <= windowHeight) {
 		// Menu fits below the widget
@@ -37,7 +37,7 @@ bool MenuItem::onMouseButtonReleased(unsigned int button)
 	else {
 		// Try putting the menu above the button widget
 
-		int topOfMenu = (int)miY - (int)menu->getActualHeight();
+		int topOfMenu = (int)miY - (int)menuHeight;
 
 		set_menu_overlay_root_container(menu, miX, topOfMenu);
 		return true;

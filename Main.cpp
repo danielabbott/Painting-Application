@@ -81,8 +81,11 @@ int main(int argc, char ** argv)
 	// TODO use border layout
 
 
-	MyButton button = MyButton("press me");
-	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &button }, 1, 0, 0, 14, 0xff202020, UI::Container::NONE);
+	MyButton button1 = MyButton("press me");
+	MyButton button2 = MyButton("or me");
+	MyButton button3 = MyButton("or maybe this very long button right here");
+	MyButton button4 = MyButton("exclamation marks are broken > ! <");
+	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &button1, &button2, &button3, &button4 }, 1, 0, 0, 14, 0xff202020, UI::Container::FLOW_ACROSS);
 
 	// UI::Label lbl = UI::Label("hiya");
 	MyButton b1 = MyButton("1");
@@ -90,8 +93,8 @@ int main(int argc, char ** argv)
 	MyButton b3 = MyButton("333333333");
 	UI::Menu menu = UI::Menu(vector<UI::Widget *> { &b1, &b2, &b3 });
 
-	UI::MenuItem button2 = UI::MenuItem("12345", &menu);
-	UI::MenuBar container2 = UI::MenuBar(vector<UI::Widget *> { &button2 }, 1, 2, 0, 14, 0xff404040, UI::Container::NONE);
+	UI::MenuItem button12345 = UI::MenuItem("12345", &menu);
+	UI::MenuBar container2 = UI::MenuBar(vector<UI::Widget *> { &button12345 }, 1, 2, 0, 14, 0xff404040, UI::Container::FLOW_ACROSS);
 
 	Canvas canvas = Canvas(1, 1, 0, 0);
 
