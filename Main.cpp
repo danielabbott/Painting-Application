@@ -158,13 +158,14 @@ int main(int argc, char ** argv)
 	while(!window_should_close()) {
 		start_opengl_timer();
 		bool redrawn = UI::draw_ui(false);
+		stop_opengl_timer();
 
-		uint64_t time = stop_opengl_timer();
 
 		if(redrawn) {
 			swap_buffers();
 			glFinish();
 
+			uint64_t time = get_opengl_timer_value();
 			if(time) {
 				clog << "Time to update: " << setprecision(3) << (time / 1000000.0f) << " ms" << endl;
 			}

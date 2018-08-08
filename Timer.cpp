@@ -25,7 +25,7 @@ void start_opengl_timer()
 	#endif
 }
 
-uint64_t stop_opengl_timer()
+void stop_opengl_timer()
 {
 	#ifndef NDEBUG
 	if (GLAD_GL_ARB_timer_query) {
@@ -34,7 +34,17 @@ uint64_t stop_opengl_timer()
 
 		glEndQuery(GL_TIME_ELAPSED);
 		timing = false;
+	}
+	#endif
 
+}
+
+uint64_t get_opengl_timer_value()
+{
+	#ifndef NDEBUG
+	if (GLAD_GL_ARB_timer_query) {
+		assert(queryId);
+		assert(!timing);
 		uint64_t value;
 		glGetQueryObjectui64v(queryId, GL_QUERY_RESULT, &value);
 		return value;
