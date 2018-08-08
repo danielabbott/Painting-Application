@@ -127,6 +127,8 @@ void create_window(unsigned int width, unsigned int height, unsigned int glVer, 
     glfwMakeContextCurrent(window);
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 
+    clog << (char *)glGetString(GL_RENDERER) << endl;
+
 	glDisable(GL_DEPTH_TEST);
 	glActiveTexture(GL_TEXTURE0);
 	glDisable(GL_CULL_FACE);

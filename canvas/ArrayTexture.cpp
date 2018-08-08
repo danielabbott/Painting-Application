@@ -1,11 +1,12 @@
 #include <ArrayTexture.h>
 #include <cassert>
 #include <cstring>
+#include <hwcaps.h>
 
 void ArrayTexture::create(ImageFormat type_, unsigned int wh, unsigned int imageCount_)
 {
 	assert(wh);
-	assert(wh <= 1024);
+	assert(wh <= max_texture_size());
 	assert(imageCount_);
 	assert(imageCount_ <= 256);
 

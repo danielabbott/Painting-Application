@@ -43,6 +43,16 @@ out vec4 outColour;
 
 void main()
 {
+	// vec4 src = texture(rgbaTextures, vec3(pass_coordinates, 1.1));
+	// vec3 finalColour = mix(vec3(1.0,1.0,1.0), src.rgb, src.a);
+
+	// if(strokeLayer == 1) {
+	// 	float strokeOpacity = texture(strokeImage, pass_canvas_coordinates).r * strokeColour.a;
+	// 	finalColour = mix(finalColour, strokeColour.rgb, strokeOpacity);
+	// }
+	// outColour = vec4(finalColour, 1.0);
+
+
 	vec3 finalColour = vec3(1.0);
 
 	int currentLayer = bottomLayer;
