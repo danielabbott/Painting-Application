@@ -245,17 +245,41 @@ void ImageBlock::fillLayer(unsigned int layerIndex, uint32_t colour)
 	if(layer.imageFormat == FMT_RGBA) {
 		layersRGBA[layer.imageFormatSpecificIndex].dataType = LayerData::SOLID_COLOUR;
 		layersRGBA[layer.imageFormatSpecificIndex].colour = colour;
-		arrayTextureRGBA.clear(layer.imageFormatSpecificIndex, 1, colour);
+
+		if(GLAD_GL_ARB_clear_texture) {
+			arrayTextureRGBA.clear(layer.imageFormatSpecificIndex, 1, colour);
+		}
+		else {
+			layersRGBA[layer.imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
+			glClearColor((colour & 0xff) / 255.0f, ((colour >> 8) & 0xff) / 255.0f, ((colour >> 16) & 0xff) / 255.0f, ((colour >> 24) & 0xff) / 255.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+		}
 	}
 	else if(layer.imageFormat == FMT_RG) {
 		layersRG[layer.imageFormatSpecificIndex].dataType = LayerData::SOLID_COLOUR;
 		layersRG[layer.imageFormatSpecificIndex].colour = colour;
-		arrayTextureRG.clear(layer.imageFormatSpecificIndex, 1, colour);
+
+		if(GLAD_GL_ARB_clear_texture) {
+			arrayTextureRG.clear(layer.imageFormatSpecificIndex, 1, colour);
+		}
+		else {
+			layersRG[layer.imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
+			glClearColor((colour & 0xff) / 255.0f, ((colour >> 8) & 0xff) / 255.0f, 0, 0);
+			glClear(GL_COLOR_BUFFER_BIT);
+		}
 	}
 	else if(layer.imageFormat == FMT_R) {
 		layersR[layer.imageFormatSpecificIndex].dataType = LayerData::SOLID_COLOUR;
 		layersR[layer.imageFormatSpecificIndex].colour = colour;
-		arrayTextureR.clear(layer.imageFormatSpecificIndex, 1, colour);
+
+		if(GLAD_GL_ARB_clear_texture) {
+			arrayTextureR.clear(layer.imageFormatSpecificIndex, 1, colour);
+		}
+		else {
+			layersR[layer.imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
+			glClearColor((colour & 0xff) / 255.0f, 0, 0, 0);
+			glClear(GL_COLOR_BUFFER_BIT);
+		}
 	}
 	else {
 		assert(0);

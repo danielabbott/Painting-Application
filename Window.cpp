@@ -137,6 +137,8 @@ void create_window(unsigned int width, unsigned int height, unsigned int glVer, 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	GLAD_GL_ARB_clear_texture = GLAD_GL_ARB_get_program_binary = GLAD_GL_ARB_texture_storage = false;
+
 	if (GLAD_GL_ARB_debug_output) {
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
 		glDebugMessageCallbackARB(debug_callback, nullptr);

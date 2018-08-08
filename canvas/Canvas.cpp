@@ -24,14 +24,14 @@ int firstLayer = -1;
 int activeLayer = -1;
 
 // 8K
-// static unsigned int canvasWidth = 7680;
-// static unsigned int canvasHeight = 4320;
-// static float canvasZoom = 0.08f;
+static unsigned int canvasWidth = 7680;
+static unsigned int canvasHeight = 4320;
+static float canvasZoom = 0.08f;
 
 // 4K
-static unsigned int canvasWidth = 3840;
-static unsigned int canvasHeight = 2160;
-static float canvasZoom = 0.16f;
+// static unsigned int canvasWidth = 3840;
+// static unsigned int canvasHeight = 2160;
+// static float canvasZoom = 0.16f;
 
 // unsigned int canvasWidth = 1024;
 // unsigned int canvasHeight = 1024;
