@@ -6,6 +6,13 @@ using namespace std;
 
 namespace UI {
 
+Widget::Widget() {}
+
+Widget::Widget(unsigned int x_, unsigned int y_, unsigned int w_, unsigned int h_, 
+LeftRightAlignment leftRightTextAlign_, TopBottomAlignment topBottomTextAlign_) 
+: leftRightTextAlign(leftRightTextAlign_), topBottomTextAlign(topBottomTextAlign_), x(x_), y(y_), w(w_), h(h_)  
+{}
+
 static string defaultText = "";
 string const& Widget::getText() 
 { 
@@ -134,7 +141,6 @@ bool Container::onScroll_(unsigned int x, unsigned int y, int scrollY, EventHand
 	return false;
 }
 
-Button::Button(std::string text_) : Label(text_) {}
 
 Canvas::Canvas(unsigned int width, unsigned int height) : Widget(0, 0, width, height) {}
 

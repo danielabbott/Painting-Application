@@ -86,8 +86,14 @@ void link_shader_program(GLuint id)
 		throw runtime_error("Error linking shaders");
 	}
 
+	
+}
+
+void validate_shader_program(GLuint id)
+{
 	glValidateProgram(id);
 
+	GLint status;
 	glGetProgramiv(id, GL_VALIDATE_STATUS, &status);
 	print_program_log(id, clog);
 

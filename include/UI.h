@@ -19,6 +19,15 @@ class Widget {
 	friend bool draw_ui(bool);
 	friend void setAbsWindowCoords(Container *, unsigned int, unsigned int);
 
+public:
+
+	enum LeftRightAlignment {
+		LEFT, LEFT_RIGHT_CENTRE, RIGHT
+	};
+	enum TopBottomAlignment {
+		TOP, TOP_BOTTOM_CENTRE, BOTTOM
+	};
+
 	// Relative to the top-left of the parent
 	unsigned int actualX = 0, actualY = 0;
 
@@ -29,6 +38,8 @@ class Widget {
 
 	Widget * parent = nullptr;
 
+	LeftRightAlignment leftRightTextAlign;
+	TopBottomAlignment topBottomTextAlign;
 
 protected:
 	// Preferred position
@@ -41,9 +52,9 @@ protected:
 	unsigned int w = 0, h = 0;
 
 public:
-	Widget() {}
-	Widget(unsigned int x_, unsigned int y_) : x(x_), y(y_) {}
-	Widget(unsigned int x_, unsigned int y_, unsigned int w_, unsigned int h_) : x(x_), y(y_), w(w_), h(h_) {}
+
+	Widget();
+	Widget(unsigned int x_, unsigned int y_, unsigned int w_, unsigned int h_, LeftRightAlignment leftRightTextAlign = LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TOP_BOTTOM_CENTRE);
 
 	uint32_t getActualX() { return actualX; }
 	uint32_t getActualY() { return actualY; }
@@ -79,6 +90,8 @@ public:
 		y_ = actualY;
 	}
 
+
+
 	// RGBA (A is MSB, R LSB).
 	// If alpha is 0 the background will not be drawn
 	virtual uint32_t getBackGroundColour() { return 0; }
@@ -89,6 +102,7 @@ public:
 
 	virtual ~Widget(){}
 
+	// Returns the preferred/minimum dimensions of the widget
 	virtual void getDimensions(unsigned int & width, unsigned int & height)
 	{
 		width = w;
@@ -144,6 +158,9 @@ public:
 		// x/y=1: centre
 		// x/y=2: right/bottom
 		// Preferred width and height of container are ignored if it is in the centre
+		// Note that the order of widgets in the list may affect the positioning of the elements
+		// If two widgets could exist in the same corner (e.g. widgets in the left-centre and top-centre positions compete for the top-left corner)
+		// then the first widget in the list claims that corner
 		BORDER
 	};
 
@@ -193,8 +210,11 @@ protected:
 	std::string widgetText;
 	unsigned int textWidth;
 public:
-	Label(std::string text_, unsigned int x, unsigned int y);
-	Label(std::string text_);
+	Label(std::string text_, unsigned int x, unsigned int y, 
+		LeftRightAlignment leftRightTextAlign = LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TOP_BOTTOM_CENTRE);
+
+	Label(std::string text_, LeftRightAlignment leftRightTextAlign = LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TOP_BOTTOM_CENTRE);
+
 	virtual std::string const& getText() override;
 	virtual void getDimensions(unsigned int & width, unsigned int & height) override;
 };
@@ -202,7 +222,8 @@ public:
 class Button : public Label {
 bool beingClicked = false;
 public:
-	Button(std::string text_);
+	Button(std::string text_, LeftRightAlignment leftRightTextAlign = LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TOP_BOTTOM_CENTRE);
+
 	virtual uint32_t getBackGroundColour() override;
 	virtual bool onClicked(unsigned int button, unsigned int x, unsigned int y) override;
 	virtual bool onMouseButtonReleased(unsigned int button) override;

@@ -14,6 +14,12 @@
 using namespace std;
 
 Layer layers[64];
+
+Layer & get_layer(unsigned int index)
+{
+	return layers[index];
+}
+
 int firstLayer = -1;
 int activeLayer = -1;
 
@@ -55,7 +61,9 @@ static Brush testBrush;
 void create_layers()
 {
 	layers[0].type = Layer::LAYER;
+	layers[0].name = "bottom layer";
 	layers[1].type = Layer::LAYER;
+	layers[1].name = "top layer";
 
 	firstLayer = 0;
 	activeLayer = 1;
@@ -65,6 +73,18 @@ void create_layers()
 	activeColour[1] = 0;
 	activeColour[2] = 0;
 	activeColour[3] = 0.95f;
+}
+
+void set_active_layer(unsigned int index)
+{
+	assert(layers[index].type == Layer::LAYER);
+	activeLayer = index;
+}
+
+
+unsigned int get_active_layer()
+{
+	return activeLayer;
 }
 
 struct LayerData {
@@ -166,6 +186,8 @@ static inline void create_canvas_generation_shader_program()
 	uniLoc = glGetUniformLocation(shaderProgram, "strokeImage");
 	if(uniLoc == -1) throw runtime_error("res/canvas_gen.frag does not define uniform sampler2D strokeImage");
 	glUniform1i(uniLoc, 3);
+
+	validate_shader_program(shaderProgram);
 }
 
 static inline void create_simple_texture_shader_program()
@@ -180,6 +202,15 @@ static inline void create_simple_texture_shader_program()
 	glDeleteShader(fsId);
 	canvasTextureMatrixLocation = glGetUniformLocation(canvasTextureShaderProgram, "matrix");
 	if(canvasTextureMatrixLocation == -1) throw runtime_error("res/simple_texture.vert does not define uniform mat4 matrix");
+
+
+	bind_shader_program(canvasTextureShaderProgram);
+	
+	GLint uniLoc = glGetUniformLocation(canvasTextureShaderProgram, "image");
+	if(uniLoc == -1) throw runtime_error("res/simple_texture.frag does not define uniform sampler2D image");
+	glUniform1i(uniLoc, 0);
+
+	validate_shader_program(canvasTextureShaderProgram);
 }
 
 static inline void create_stroke_merge_shader_program()
@@ -210,6 +241,8 @@ static inline void create_stroke_merge_shader_program()
 	strokeMergeIndexLocationRGBA = glGetUniformLocation(strokeMergeShaderProgramRGBA, "textureArrayIndex");
 	if(strokeMergeIndexLocationRGBA == -1) throw runtime_error("res/stroke_merge.frag does not define uniform float textureArrayIndex");
 
+	validate_shader_program(strokeMergeShaderProgramRGBA);
+
 	//
 
 	fsId = load_shader("res/stroke_merge.frag", GL_FRAGMENT_SHADER, "#version 140\n#define FMT_RG\n");
@@ -237,6 +270,7 @@ static inline void create_stroke_merge_shader_program()
 	strokeMergeIndexLocationRG = glGetUniformLocation(strokeMergeShaderProgramRG, "textureArrayIndex");
 	if(strokeMergeIndexLocationRG == -1) throw runtime_error("res/stroke_merge.frag does not define uniform float textureArrayIndex");
 
+	validate_shader_program(strokeMergeShaderProgramRG);
 	//
 
 	fsId = load_shader("res/stroke_merge.frag", GL_FRAGMENT_SHADER, "#version 140\n#define FMT_R\n");
@@ -265,6 +299,7 @@ static inline void create_stroke_merge_shader_program()
 	strokeMergeIndexLocationR = glGetUniformLocation(strokeMergeShaderProgramR, "textureArrayIndex");
 	if(strokeMergeIndexLocationR == -1) throw runtime_error("res/stroke_merge.frag does not define uniform float textureArrayIndex");
 
+	validate_shader_program(strokeMergeShaderProgramR);
 }
 
 static inline void create_opengl_buffers()
@@ -629,6 +664,7 @@ bool Canvas::onMouseButtonReleasedOutsideWidget(unsigned int button)
 bool Canvas::onMouseButtonReleased(unsigned int button)
 {
 	if(button == 0) {
+		clog << "Pen released" << endl;
 		penDown = false;
 
 		// Stylus was lifted up, merge the stroke layer with the active layer and clear the stroke layer
@@ -697,6 +733,7 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 bool Canvas::onClicked(unsigned int button, unsigned int x, unsigned int y)
 {
 	if(button == 0) {
+		clog << "Pen pressed" << endl;
 		penDown = true;
 
 		cursorCoordsToCanvasCoords(x, y, prevCanvasCoordX, prevCanvasCoordY);

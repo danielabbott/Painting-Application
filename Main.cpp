@@ -1,3 +1,5 @@
+// A crude prototype UI is implemented here to test various functionality within the application
+
 #include <Window.h>
 #include <UI.h>
 #include <stdexcept>
@@ -17,7 +19,8 @@ void testfunc_clear_layer2();
 
 class MyButton : public UI::Button
 {
-	virtual bool onMouseButtonReleased(unsigned int button) override { 
+	virtual bool onMouseButtonReleased(unsigned int button) override
+	{ 
 		UI::Button::onMouseButtonReleased(button);
 		if(!button) {
 			testfunc_clear_layer2();
@@ -25,7 +28,34 @@ class MyButton : public UI::Button
 		return true; 
 	}
 public:
-	MyButton(string text_) : UI::Button(text_) {}
+	MyButton(string text_, LeftRightAlignment leftRightTextAlign = LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TOP_BOTTOM_CENTRE)
+	: UI::Button(text_, leftRightTextAlign, topBottomTextAlign) {}
+};
+
+class LayerButton : public UI::Label
+{
+	unsigned int layerIndex;
+
+	virtual bool onMouseButtonReleased(unsigned int button) override
+	{ 
+		UI::Label::onMouseButtonReleased(button);
+		if(!button) {
+			set_active_layer(layerIndex);
+		}
+		return true; 
+	}
+
+	virtual uint32_t getBackGroundColour() override
+	{
+		if(layerIndex == get_active_layer()) {
+			return 0x30300000;
+		}
+		else {
+			return 0;
+		}
+	}
+public:
+	LayerButton(string text_, unsigned int layerIndex_) : UI::Label(text_), layerIndex(layerIndex_) {}
 };
 
 int main(int argc, char ** argv)
@@ -78,14 +108,14 @@ int main(int argc, char ** argv)
 
 	UI::initialise_ui();
 
-	
+
 
 
 	MyButton button1 = MyButton("press me");
 	MyButton button2 = MyButton("or me");
 	MyButton button3 = MyButton("or maybe this very long button right here");
 	MyButton button4 = MyButton("exclamation marks are broken > ! <");
-	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &button1, &button2, &button3, &button4 }, 1, 0, 0, 14, 0xff202020, UI::Container::FLOW_ACROSS);
+	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &button1, &button2, &button3, &button4 }, 1, 0, 0, 0, 0xff202020, UI::Container::FLOW_ACROSS);
 
 	// UI::Label lbl = UI::Label("hiya");
 	MyButton b1 = MyButton("1");
@@ -94,12 +124,28 @@ int main(int argc, char ** argv)
 	UI::Menu menu = UI::Menu(vector<UI::Widget *> { &b1, &b2, &b3 });
 
 	UI::MenuItem button12345 = UI::MenuItem("12345", &menu);
-	UI::MenuBar container2 = UI::MenuBar(vector<UI::Widget *> { &button12345 }, 1, 2, 0, 14, 0xff404040, UI::Container::FLOW_ACROSS);
+	UI::MenuBar container2 = UI::MenuBar(vector<UI::Widget *> { &button12345 }, 1, 2, 0, 0, 0xff404040, UI::Container::FLOW_ACROSS);
 
 	Canvas canvas = Canvas(1, 1, 0, 0);
 
+	vector<UI::Widget *> layerLabels;
 
-	UI::Container root = UI::Container(vector<UI::Widget *> { &container,&canvas,&container2 }, 0, 0, 640, 480, 0, UI::Container::BORDER);
+	for(unsigned int i = 0; i < 64; i++) {
+		Layer & layer = get_layer(i);
+
+		if(layer.type == Layer::LAYER) {
+			layerLabels.insert(layerLabels.begin(), new LayerButton(layer.name, i));
+		}
+
+	}
+
+	layerLabels.insert(layerLabels.begin(), new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::NONE));
+	layerLabels.push_back(new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::NONE));
+	UI::Container layersContainer = UI::Container(layerLabels, 0, 1, 100, 0, 0xff202020, UI::Container::FLOW_DOWN);
+
+
+
+	UI::Container root = UI::Container(vector<UI::Widget *> { &container,&canvas,&container2,&layersContainer }, 0, 0, 640, 480, 0, UI::Container::BORDER);
 	set_root_container(&root);
 
 

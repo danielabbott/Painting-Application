@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include <UI.h>
+#include <Layer.h>
 
 void initialise_canvas_display(unsigned int x, unsigned int y);
 
@@ -27,3 +28,7 @@ public:
 	virtual bool onMouseMoved(unsigned int x, unsigned int y, float pressure) override;
 	virtual bool onScroll(unsigned int x, unsigned int y, int direction) override;
 };
+
+Layer & get_layer(unsigned int index);
+void set_active_layer(unsigned int index);
+unsigned int get_active_layer();

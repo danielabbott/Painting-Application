@@ -168,6 +168,8 @@ void Container::bake()
 				if(!widget->y) {
 					// top left
 
+					corners[0] = true;
+
 					widget->actualX = 0;
 					widget->actualY = 0;
 					widget->actualWidth = centreX;
@@ -184,6 +186,7 @@ void Container::bake()
 					}
 					else {
 						widget->actualY = 0;
+						corners[0] = true;
 					}
 
 					if(corners[3]) { // BL corner
@@ -191,10 +194,13 @@ void Container::bake()
 					}
 					else {
 						widget->actualHeight = actualHeight - widget->actualY;
+						corners[3] = true;
 					}
 				}
 				else if (widget->y >= 2) {
 					// bottom left
+
+					corners[3] = true;
 
 					widget->actualX = 0;
 					widget->actualY = centreY + centreHeight;
@@ -216,6 +222,7 @@ void Container::bake()
 					}
 					else {
 						widget->actualX = 0;
+						corners[0] = true;
 					}
 
 					if(corners[1]) {
@@ -223,6 +230,7 @@ void Container::bake()
 					}
 					else {
 						widget->actualWidth = actualWidth - widget->actualX;
+						corners[1] = true;
 					}
 				}
 				else if (widget->y == 1) {
@@ -244,6 +252,7 @@ void Container::bake()
 					}
 					else {
 						widget->actualX = 0;
+						corners[3] = true;
 					}
 
 					if(corners[2]) {
@@ -251,6 +260,7 @@ void Container::bake()
 					}
 					else {
 						widget->actualWidth = actualWidth - widget->actualX;
+						corners[2] = true;
 					}
 				}
 			}
@@ -259,6 +269,8 @@ void Container::bake()
 
 				if(!widget->y) {
 					// top right
+
+					corners[1] = true;
 
 					widget->actualX = centreX + centreWidth;
 					widget->actualY = 0;
@@ -276,6 +288,7 @@ void Container::bake()
 					}
 					else {
 						widget->actualY = 0;
+						corners[1] = true;
 					}
 
 					if(corners[2]) { // BR corner
@@ -283,10 +296,13 @@ void Container::bake()
 					}
 					else {
 						widget->actualHeight = actualHeight - widget->actualY;
+						corners[2] = true;
 					}
 				}
 				else if (widget->y >= 2) {
 					// bottom right
+
+					corners[2] = true;
 
 					widget->actualX = centreX + centreWidth;
 					widget->actualY = centreY + centreHeight;
@@ -700,9 +716,47 @@ void Container::draw(vector<Canvas *> & canvases, unsigned int xOffset, unsigned
 
 		string const& text = widget->getText();
 		if(text.size()) {
+			// TODO: Take font alignment into consideration
+
+			unsigned int wWidth, wHeight;
+			widget->getDimensions(wWidth, wHeight);
+
+			unsigned int textWidth = 0;
+			for(char c : text) {
+				if(c > 0) {
+					Font::FontGlyph const& glyph = asciiAtlas.glyphs[(int)c];
+					textWidth += glyph.advanceX;
+				}
+				else {
+					textWidth += 640;
+				}
+			}
+
 			unsigned int textColour = widget->getTextColour();
-			unsigned int textX = (widget->actualX + 2) * 64;
-			unsigned int textY = widget->actualY + 12;
+
+			unsigned int textX;
+			if(widget->leftRightTextAlign == LEFT) {
+				textX = (widget->actualX + 2) * 64;
+			}
+			else if (widget->leftRightTextAlign == LEFT_RIGHT_CENTRE)
+			{
+				textX = widget->actualX*64 + (widget->actualWidth/2)*64 - textWidth/2;
+			}
+			else {
+				textX = widget->actualX*64 + widget->actualWidth*64 - 2*64 - textWidth;
+			}
+
+			unsigned int textY;
+			if(widget->topBottomTextAlign == TOP) {
+				textY = widget->actualY + 14;
+			}
+			else if(widget->topBottomTextAlign == TOP_BOTTOM_CENTRE) {
+				textY = widget->actualY + widget->actualHeight/2 + 14/2 - 4;
+			}
+			else {
+				textY = widget->actualY + widget->actualHeight - 2;
+			}
+
 			// TODO UTF-8 support
 			for(char c : text) {
 				if(c > 0/* && c < 128*/) {

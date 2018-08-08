@@ -5,6 +5,10 @@ using namespace std;
 
 namespace UI {
 
+Button::Button(std::string text_, LeftRightAlignment leftRightTextAlign_, TopBottomAlignment topBottomTextAlign_)
+: Label(text_, leftRightTextAlign_, topBottomTextAlign_) 
+{}
+
 uint32_t Button::getBackGroundColour()
 {
 	return beingClicked ? 0x30000000 : 0;
