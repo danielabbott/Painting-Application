@@ -28,26 +28,59 @@ class MyButton : public UI::Button
 		return true; 
 	}
 public:
-	MyButton(string text_, LeftRightAlignment leftRightTextAlign = LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TOP_BOTTOM_CENTRE)
-	: UI::Button(text_, leftRightTextAlign, topBottomTextAlign) {}
+	MyButton(string text_)
+	: UI::Button(text_, LEFT_RIGHT_CENTRE, TOP_BOTTOM_CENTRE) {}
+};
+
+class InputToggleButton : public UI::Button
+{
+	bool useMouse = true;
+
+	virtual bool onMouseButtonReleased(unsigned int button) override
+	{ 
+		UI::Button::onMouseButtonReleased(button);
+		if(!button) {
+			useMouse = !useMouse;
+			if(!tablet_detected()) {
+				useMouse = true;
+			}
+			set_canvas_input_device(useMouse);
+		}
+		return true; 
+	}
+
+	virtual string const& getText()
+	{
+		static string mouseString = "Mouse";
+		static string tabletString = "Tablet";
+		if(useMouse) {
+			return mouseString;
+		}
+		else {
+			return tabletString;
+		}
+	}
+public:
+	InputToggleButton()
+	: UI::Button("Mouse", LEFT_RIGHT_CENTRE, TOP_BOTTOM_CENTRE) {}
 };
 
 class LayerButton : public UI::Label
 {
-	unsigned int layerIndex;
+	Layer * layer;
 
 	virtual bool onMouseButtonReleased(unsigned int button) override
 	{ 
 		UI::Label::onMouseButtonReleased(button);
 		if(!button) {
-			set_active_layer(layerIndex);
+			set_active_layer(layer);
 		}
 		return true; 
 	}
 
 	virtual uint32_t getBackGroundColour() override
 	{
-		if(layerIndex == get_active_layer()) {
+		if(layer == get_active_layer()) {
 			return 0x30300000;
 		}
 		else {
@@ -55,7 +88,7 @@ class LayerButton : public UI::Label
 		}
 	}
 public:
-	LayerButton(string text_, unsigned int layerIndex_) : UI::Label(text_), layerIndex(layerIndex_) {}
+	LayerButton(Layer * layer_) : UI::Label(layer_->name), layer(layer_) {}
 };
 
 int main(int argc, char ** argv)
@@ -110,12 +143,12 @@ int main(int argc, char ** argv)
 
 
 
-
+	InputToggleButton inp = InputToggleButton();
 	MyButton button1 = MyButton("press me");
 	MyButton button2 = MyButton("or me");
 	MyButton button3 = MyButton("or maybe this very long button right here");
 	MyButton button4 = MyButton("exclamation marks are broken > ! <");
-	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &button1, &button2, &button3, &button4 }, 1, 0, 0, 0, 0xff202020, UI::Container::FLOW_ACROSS);
+	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &inp, &button1, &button2, &button3, &button4 }, 1, 0, 0, 0, 0xff202020, UI::Container::FLOW_ACROSS);
 
 	// UI::Label lbl = UI::Label("hiya");
 	MyButton b1 = MyButton("1");
@@ -130,13 +163,18 @@ int main(int argc, char ** argv)
 
 	vector<UI::Widget *> layerLabels;
 
-	for(unsigned int i = 0; i < 64; i++) {
-		Layer & layer = get_layer(i);
-
-		if(layer.type == Layer::LAYER) {
-			layerLabels.insert(layerLabels.begin(), new LayerButton(layer.name, i));
+	Layer * layer = get_first_layer();
+	while(1) {
+		if(layer->type == Layer::LAYER) {
+			layerLabels.insert(layerLabels.begin(), new LayerButton(layer));
 		}
 
+		if(layer->next) {
+			layer = layer->next;
+		}
+		else {
+			break;
+		}
 	}
 
 	layerLabels.insert(layerLabels.begin(), new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::NONE));

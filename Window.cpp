@@ -462,6 +462,7 @@ void find_tablets()
 	}
 
 	tabletDetected = EasyTab_Load(win32Window) == EASYTAB_OK;
+	cout<<EasyTab->MaxPressure<<endl;
 	if(!tabletDetected) {
 		throw runtime_error("No tablet detected (Wintab API)");
 	}

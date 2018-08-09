@@ -58,17 +58,17 @@ public:
 	// Sets internal state to match global layers array
 	void create();
 
-	void bindFrameBuffer(unsigned int layerIndex);
-	void bindTexture(unsigned int layerIndex);
-	void copyTo(unsigned int layerIndex);
+	void bindFrameBuffer(Layer * layer);
+	void bindTexture(Layer * layer);
+	void copyTo(Layer * layer);
 
 	// Overwrites pixels, no blending is done
-	void uploadImage(unsigned int layerIndex, unsigned int x, unsigned int y, unsigned int width, unsigned int height, void * data, unsigned int stride, ImageFormat sourceType);
+	void uploadImage(Layer * layer, unsigned int x, unsigned int y, unsigned int width, unsigned int height, void * data, unsigned int stride, ImageFormat sourceType);
 
 	// Returns -1 if no video memory is allocated for that layer
-	int indexOf(unsigned int layerIndex);
+	int indexOf(Layer * layer);
 
-	void fillLayer(unsigned int layerIndex, uint32_t colour);
+	void fillLayer(Layer * layer, uint32_t colour);
 
 	void destroy();
 };

@@ -7,11 +7,10 @@
 
 struct Layer {
 	enum Type {
-		NONE, // Layer does not exist 
 		LAYER, LAYER_GROUP
 	};
 
-	Type type = NONE;
+	Type type = LAYER;
 
 	std::string name;
 	ImageFormat imageFormat = FMT_RGBA;
@@ -23,9 +22,9 @@ struct Layer {
 
 	Mode mode = BLEND_MODE_NORMAL;
 
-	int firstChild = -1;
-	int next = -1;
-	int parent = -1;
+	Layer * firstChild = nullptr;
+	Layer * next = nullptr; // The layer above
+	Layer * parent = nullptr;
 
 	// Index into layersRGBA, layerRG, or layersR in ImageBlock
 	// TODO: Maybe this won't be the same across all image blocks - save memory

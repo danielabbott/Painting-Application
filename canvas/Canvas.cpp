@@ -13,25 +13,19 @@
 
 using namespace std;
 
-Layer layers[64];
 
-Layer & get_layer(unsigned int index)
-{
-	return layers[index];
-}
-
-int firstLayer = -1;
-int activeLayer = -1;
+Layer * firstLayer = nullptr;
+Layer * activeLayer = nullptr;
 
 // 8K
-// static unsigned int canvasWidth = 7680;
-// static unsigned int canvasHeight = 4320;
-// static float canvasZoom = 0.08f;
+static unsigned int canvasWidth = 7680;
+static unsigned int canvasHeight = 4320;
+static float canvasZoom = 0.08f;
 
 // 4K
-static unsigned int canvasWidth = 3840;
-static unsigned int canvasHeight = 2160;
-static float canvasZoom = 0.16f;
+// static unsigned int canvasWidth = 3840;
+// static unsigned int canvasHeight = 2160;
+// static float canvasZoom = 0.16f;
 
 // unsigned int canvasWidth = 1024;
 // unsigned int canvasHeight = 1024;
@@ -58,6 +52,7 @@ static bool penDown = false;
 
 static Brush testBrush;
 
+Layer layers[2];
 void create_layers()
 {
 	layers[0].type = Layer::LAYER;
@@ -65,9 +60,9 @@ void create_layers()
 	layers[1].type = Layer::LAYER;
 	layers[1].name = "top layer";
 
-	firstLayer = 0;
-	activeLayer = 1;
-	layers[0].next = 1;
+	firstLayer = &layers[0];
+	activeLayer = &layers[1];
+	layers[0].next = &layers[1];
 
 	activeColour[0] = 1;
 	activeColour[1] = 0;
@@ -75,34 +70,39 @@ void create_layers()
 	activeColour[3] = 0.95f;
 }
 
-void set_active_layer(unsigned int index)
+Layer * get_first_layer()
 {
-	assert(layers[index].type == Layer::LAYER);
-	activeLayer = index;
+	return firstLayer;
 }
 
+void set_active_layer(Layer * layer)
+{
+	// TODO have layer groups selectable just don't allow drawing on them
+	assert(layer->type == Layer::LAYER);
+	activeLayer = layer;
+}
 
-unsigned int get_active_layer()
+Layer * get_active_layer()
 {
 	return activeLayer;
 }
 
-struct LayerData {
-	float colour[4]; // only if textureUnit = -1 or is a filter layer
-	int type; // 0 = None (stop iterating over array), 1 = Layer, 2 = Layer group
-	float textureIndex; // -1 = None, solid colour, 0+ = Index into array texture
-	int blendModeOrFilter; // normal, add, sub, mul, div, etc. hsv adjust, greyscale, blur, etc.
+// This must match the definitions in canvas_gen.frag!
 
-	int firstChild; // first child layer (-1 if no children). Only if type == 2
-	int next; // Nest layer in this layer group
-	int parent;
-	int imageFormat;
+struct Op {
+	int opType;
 
+	int pad0;
+	int pad1;
 	int pad2;
-}; // size = 48 bytes
 
-static struct {
-	LayerData layers[64];
+	float colour[4];
+
+};
+
+struct UniformData {
+	Op ops[64];
+	float baseColour[4]; // alpha component is unused
 
 	// start of this image block in texture
 	float offsetX;
@@ -110,12 +110,10 @@ static struct {
 	float width;
 	float height;
 
-	int bottomLayer; // Layer at bottom of stack (Index into layers. Could be a group)
-
-	int strokeLayer; // if not -1 then strokeImage should be sampled
-	float padding[2];
 	float strokeColour[4];
-} uniformData;
+};
+
+UniformData uniformData;
 
 static GLuint shaderProgram = 0;
 static GLuint ubo;
@@ -177,12 +175,12 @@ static inline void create_canvas_generation_shader_program()
 	GLint uniLoc = glGetUniformLocation(shaderProgram, "rgbaTextures");
 	if(uniLoc == -1) throw runtime_error("res/canvas_gen.frag does not define uniform sampler2DArray rgbaTextures");
 	glUniform1i(uniLoc, 0);
-	// uniLoc = glGetUniformLocation(shaderProgram, "rgTextures");
-	// if(uniLoc == -1) throw runtime_error("res/canvas_gen.frag does not define uniform sampler2DArray rgTextures");
-	// glUniform1i(uniLoc, 1);
-	// uniLoc = glGetUniformLocation(shaderProgram, "rTextures");
-	// if(uniLoc == -1) throw runtime_error("res/canvas_gen.frag does not define uniform sampler2DArray rTextures");
-	// glUniform1i(uniLoc, 2);
+	uniLoc = glGetUniformLocation(shaderProgram, "rgTextures");
+	if(uniLoc == -1) throw runtime_error("res/canvas_gen.frag does not define uniform sampler2DArray rgTextures");
+	glUniform1i(uniLoc, 1);
+	uniLoc = glGetUniformLocation(shaderProgram, "rTextures");
+	if(uniLoc == -1) throw runtime_error("res/canvas_gen.frag does not define uniform sampler2DArray rTextures");
+	glUniform1i(uniLoc, 2);
 	uniLoc = glGetUniformLocation(shaderProgram, "strokeImage");
 	if(uniLoc == -1) throw runtime_error("res/canvas_gen.frag does not define uniform sampler2D strokeImage");
 	glUniform1i(uniLoc, 3);
@@ -472,39 +470,14 @@ void Canvas::draw() {
 
 	glBindVertexArray(vaoId);
 	if(canvasDirty) {
-
-		for(unsigned int i = 0; i < 64; i++) {
-			if(layers[i].type == Layer::LAYER_GROUP) {
-				uniformData.layers[i].type = 2;
-				uniformData.layers[i].firstChild = layers[i].firstChild;
-				uniformData.layers[i].next = layers[i].next;
-				uniformData.layers[i].parent = layers[i].parent;
-			} 
-			else if(layers[i].type == Layer::LAYER) {
-				uniformData.layers[i].type = 1;
-				uniformData.layers[i].firstChild = layers[i].firstChild;
-				uniformData.layers[i].next = layers[i].next;
-				uniformData.layers[i].parent = layers[i].parent;
-				uniformData.layers[i].blendModeOrFilter = (unsigned int) layers[i].mode;
-				uniformData.layers[i].imageFormat = layers[i].imageFormat;
-			}
-			else {
-				uniformData.layers[i].type = 0;
-			}
-		}
-
-		uniformData.bottomLayer = firstLayer;
-
-		if(penDown && activeLayer != -1) {
-			uniformData.strokeLayer = activeLayer;
-
-			if(layers[activeLayer].imageFormat == FMT_RGBA) {
+		if(penDown && activeLayer) {
+			if(activeLayer->imageFormat == FMT_RGBA) {
 				uniformData.strokeColour[0] = activeColour[0];
 				uniformData.strokeColour[1] = activeColour[1];
 				uniformData.strokeColour[2] = activeColour[2];
 				uniformData.strokeColour[3] = activeColour[3];
 			}
-			else if(layers[activeLayer].imageFormat == FMT_RG) {
+			else if(activeLayer->imageFormat == FMT_RG) {
 				uniformData.strokeColour[0] = activeColour[0];
 				uniformData.strokeColour[1] = activeColour[0];
 				uniformData.strokeColour[2] = activeColour[0];
@@ -516,9 +489,6 @@ void Canvas::draw() {
 				uniformData.strokeColour[2] = 1;
 				uniformData.strokeColour[3] = activeColour[3];
 			}
-		}
-		else {
-			uniformData.strokeLayer = -1;
 		}
 
 		bind_shader_program(shaderProgram);
@@ -532,43 +502,81 @@ void Canvas::draw() {
 			unsigned int rgbaIndex = 0;
 			unsigned int rgIndex = 0;
 			unsigned int rIndex = 0;
-			for(unsigned int i = 0; i < 64; i++) {
-				if(layers[i].type == Layer::LAYER) {
-					const ImageBlock::LayerData * layerData;
-					if(layers[i].imageFormat == FMT_RGBA) {
+
+			assert(firstLayer);
+			Layer * layer = firstLayer;
+			vector<Op> ops;
+
+			uniformData.baseColour[0] = uniformData.baseColour[1] = uniformData.baseColour[2] = uniformData.baseColour[3] = 1;
+
+			while(1) {
+				if(layer->type == Layer::LAYER) {
+					const ImageBlock::LayerData * layerData = nullptr;
+					if(layer->imageFormat == FMT_RGBA) {
 						layerData = &block.layersRGBA[rgbaIndex++];
 					}
-					else if(layers[i].imageFormat == FMT_RG) {
+					else if(layer->imageFormat == FMT_RG) {
 						layerData = &block.layersRG[rgIndex++];
 					}
-					else if(layers[i].imageFormat == FMT_R) {
-						layerData = &block.layersR[rIndex++];
-					}
 					else {
-						layerData = nullptr;
-						assert(0);
+						layerData = &block.layersR[rIndex++];
 					}
 
 					if(layerData->dataType == ImageBlock::LayerData::SOLID_COLOUR) {
-						uniformData.layers[i].textureIndex = -1;
+						if((layerData->colour >> 24) == 0xff) {
+							ops.clear();
+							uniformData.baseColour[0] = (layerData->colour & 0xff) / 255.0f;
+							uniformData.baseColour[1] = ((layerData->colour >> 8) & 0xff) / 255.0f;
+							uniformData.baseColour[2] = ((layerData->colour >> 16) & 0xff) / 255.0f;
+							uniformData.baseColour[3] = ((layerData->colour >> 24) & 0xff) / 255.0f;
+						}
+						else {
+							Op op;
+							op.opType = 1; // Overlay colour (normal blend mode)
+
+							op.colour[0] = (layerData->colour & 0xff) / 255.0f;
+							op.colour[1] = ((layerData->colour >> 8) & 0xff) / 255.0f;
+							op.colour[2] = ((layerData->colour >> 16) & 0xff) / 255.0f;
+							op.colour[3] = ((layerData->colour >> 24) & 0xff) / 255.0f;
+							ops.push_back(op);
+						}
 					}
 					else {
-						uniformData.layers[i].textureIndex = layers[i].imageFormatSpecificIndex;
+						Op op;
+						op.opType = 2 + layer->imageFormat;
+						op.colour[0] = layer->imageFormatSpecificIndex + 0.1f;
+						ops.push_back(op);
 					}
 
+					if(layer == activeLayer && penDown && block.hasStrokeData) {
+						// Stroke must be overlayed
+						Op op;
+						op.opType = 4;
+						ops.push_back(op);
+					}
+				}
 
-					uniformData.layers[i].colour[0] = (layerData->colour & 0xff) / 255.0f;
-					if(layers[i].imageFormat == FMT_R) {
 
-						uniformData.layers[i].colour[3] = 1.0f;
+				if(layer->firstChild) {
+					assert(layer->type == Layer::LAYER);
+					layer = layer->firstChild;
+				}
+				else {
+					if(layer->next) {
+						layer = layer->next;
+					}
+					else if(layer->parent && layer->parent->next) {
+						layer = layer->parent->next;
 					}
 					else {
-						uniformData.layers[i].colour[1] = ((layerData->colour >> 8) & 0xff) / 255.0f;
-						uniformData.layers[i].colour[2] = ((layerData->colour >> 16) & 0xff) / 255.0f;
-						uniformData.layers[i].colour[3] = ((layerData->colour >> 24) & 0xff) / 255.0f;
+						break;
 					}
 				}
 			}
+			Op op = {};
+			ops.push_back(op);
+
+			memcpy(uniformData.ops, ops.data(), (ops.size() > 64 ? 64 : ops.size()) * sizeof(Op));
 
 			uniformData.offsetX = ((block.getX() / (float)canvasWidth) * 2.0f) - 1.0f;
 			uniformData.offsetY = (((1.0f - ((block.getY() + image_block_size()) / (float)canvasHeight)) * 2.0f) - 1.0f);
@@ -669,12 +677,12 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 
 		// Stylus was lifted up, merge the stroke layer with the active layer and clear the stroke layer
 
-		if(layers[activeLayer].imageFormat == FMT_RGBA) {
+		if(activeLayer->imageFormat == FMT_RGBA) {
 			bind_shader_program(strokeMergeShaderProgramRGBA);
 			glUniform4f(strokeMergeColourLocationRGBA, activeColour[0], activeColour[1], activeColour[2], activeColour[3]);
 			imageBlockTempLayerRGBA.bindFrameBuffer();
 		}
-		else if(layers[activeLayer].imageFormat == FMT_RG) {
+		else if(activeLayer->imageFormat == FMT_RG) {
 			bind_shader_program(strokeMergeShaderProgramRG);
 			glUniform2f(strokeMergeColourLocationRG, activeColour[0], activeColour[3]);
 			imageBlockTempLayerRG.bindFrameBuffer();
@@ -702,10 +710,10 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 
 				glUniform4f(strokeMergeCoordsLocationRGBA, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
 
-				if(layers[activeLayer].imageFormat == FMT_RGBA) {
+				if(activeLayer->imageFormat == FMT_RGBA) {
 					glUniform1f(strokeMergeIndexLocationRGBA, block.indexOf(activeLayer));
 				}
-				else if(layers[activeLayer].imageFormat == FMT_RG) {
+				else if(activeLayer->imageFormat == FMT_RG) {
 					glUniform1f(strokeMergeIndexLocationRG, block.indexOf(activeLayer));
 				}
 				else {
@@ -779,6 +787,13 @@ static void drawStroke(int canvasXcoord, int canvasYcoord, float pressure, unsig
 	if((block = get_image_block_at(canvasXcoord+size/2, canvasYcoord+size/2))) block->hasStrokeData = true;
 }
 
+bool useMouse = false;
+
+void set_canvas_input_device(bool mouse)
+{
+	useMouse = mouse;
+}
+
 bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pressure)
 {
 	if(panning) {
@@ -790,21 +805,18 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 
 		return true;
 	}
-
 	if(!penDown) {
 		return false;
 	}
 
-	if(tablet_detected()) {
+	if(useMouse || !tablet_detected()) {
+		pressure = 1;
+	}
+	else {
 		if(pressure < 0) {
 			// Ignore mouse input (tablet events may be duplicated as mouse events)
 			return false;
 		}
-
-		pressure *= pressure;
-	}
-	else {
-		pressure = 1.0f;
 	}
 
 	unsigned int size = 100;
@@ -878,7 +890,7 @@ bool Canvas::onScroll(unsigned int x, unsigned int y, int direction)
 void testfunc_clear_layer2()
 {
 	for(ImageBlock & block : imageBlocks) {
-		block.fillLayer(1, 0);
+		block.fillLayer(firstLayer->next, 0);
 	}
 	canvasDirty = true;
 }

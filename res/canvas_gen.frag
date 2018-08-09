@@ -5,22 +5,22 @@ uniform sampler2DArray rgTextures;
 uniform sampler2DArray rTextures;
 uniform sampler2D strokeImage; // Temporary image containing the current stroke as it is drawn
 
-struct LayerData {
-	vec4 colour; // only if textureUnit = -1 or is a filter layer
-	int type; // 0 = None (stop iterating over array), 1 = Layer, 2 = Layer group
-	float textureIndex; // -1 = None, solid colour, 0+ = Index into array texture
-	int blendModeOrFilter; // normal, add, sub, mul, div, etc. hsv adjust, greyscale, blur, etc.
+struct Op {
+	// 0 = END
+	// See switch statement in main function for what each value does
+	int opType;
 
-	int firstChild; // first child layer (-1 if no children). Only if type == 2
-	int next; // Nest layer in this layer group
-	int parent;
-
-	int imageFormat; // 0 = RGBA, 1 = greyscale and alpha, 2 = alpha
+	int pad0;
+	int pad1;
 	int pad2;
-}; // size = 48 bytes
+
+	vec4 colour;
+
+};
 
 layout (std140) uniform UniformData {
-	LayerData layers[64];
+	Op ops[64];
+	vec4 baseColour; // alpha component is unused
 
 	// start of this image block in texture
 	float offsetX;
@@ -28,11 +28,7 @@ layout (std140) uniform UniformData {
 	float width;
 	float height;
 
-	int bottomLayer; // Layer at bottom of stack (Index into layers. Could be a group)
-
-	int strokeLayer; // if not -1 then strokeImage should be sampled
-	vec2 padding;
-	vec4 strokeColour;
+	vec4 strokeColour; // TODO: Just use op[x].colour (will need to change in cpp)
 };
 
 
@@ -43,97 +39,57 @@ out vec4 outColour;
 
 void main()
 {
-	// vec4 src = texture(rgbaTextures, vec3(pass_coordinates, 1.1));
-	// vec3 finalColour = mix(vec3(1.0,1.0,1.0), src.rgb, src.a);
+	outColour = vec4(baseColour.rgb, 1.0);
+	for(int opIndex = 0; opIndex < 64; opIndex++) {
+		switch(ops[opIndex].opType) {
 
-	// if(strokeLayer == 1) {
-	// 	float strokeOpacity = texture(strokeImage, pass_canvas_coordinates).r * strokeColour.a;
-	// 	finalColour = mix(finalColour, strokeColour.rgb, strokeOpacity);
-	// }
-	// outColour = vec4(finalColour, 1.0);
-
-
-	vec3 finalColour = vec3(1.0);
-
-	int currentLayer = bottomLayer;
-
-	while(currentLayer != -1) {
-		int type = layers[currentLayer].type;
-		if(type == 1) {
-			// Apply this layer's pixel to the final colour
-
-			if(layers[currentLayer].textureIndex < -0.5) {
-				vec4 src = layers[currentLayer].colour;
-				finalColour = mix(finalColour, src.rgb, src.a);
-			}
-			else {
-				if(layers[currentLayer].imageFormat == 0) {
-					vec4 src = texture(rgbaTextures, vec3(pass_coordinates, layers[currentLayer].textureIndex));
-					finalColour = mix(finalColour, src.rgb, src.a);
-				}
-				else if(layers[currentLayer].imageFormat == 1) {
-					vec4 src = texture(rgTextures, vec3(pass_coordinates, layers[currentLayer].textureIndex)).rrrg;
-					finalColour = mix(finalColour, src.rgb, src.a);
-				}
-				else {
-					finalColour = texture(rTextures, vec3(pass_coordinates, layers[currentLayer].textureIndex)).rrr;
-				}
+			case 1:
+			{ // Normal blend colour (use vec4 colour)
+				vec4 src = ops[opIndex].colour;
+				outColour.rgb = mix(outColour.rgb, src.rgb, src.a);
+				break;
 			}
 
+			case 2:
+			{ // Normal blend colour (use colour.r as index into RGBA array texture)
+				vec4 src = texture(rgbaTextures, vec3(pass_coordinates, ops[opIndex].colour.r));
+				outColour.rgb = mix(outColour.rgb, src.rgb, src.a);
+				break;
+			}
 
-			if(strokeLayer == currentLayer) {
-				// The user is drawing on this layer. 
-				// Draw the brush stroke.
+			case 3:
+			{ // Normal blend colour (use colour.r as index into RG array texture)
+				vec4 src = texture(rgTextures, vec3(pass_coordinates, ops[opIndex].colour.r));
+				outColour.rgb = mix(outColour.rgb, src.rrr, src.g);
+				break;
+			}
 
+			case 4:
+			{ // Apply stroke (uses strokeImage)
 				float strokeOpacity = texture(strokeImage, pass_canvas_coordinates).r * strokeColour.a;
-				finalColour = mix(finalColour, strokeColour.rgb, strokeOpacity);
+				outColour.rgb = mix(outColour.rgb, strokeColour.rgb, strokeOpacity);
+				break;
 			}
 
-
-
-			// Got to the next layer (or go back up the layers)
-
-			if(layers[currentLayer].next != -1) {
-				currentLayer = layers[currentLayer].next;
+			case 5:
+			{ // Greyscale filter (using single-channel layer)
+				float intensity = texture(rTextures, vec3(pass_coordinates, ops[opIndex].colour.r)).r;
+				float grey = (outColour.rgb.r + outColour.rgb.g + outColour.rgb.b) / 3.0;
+				outColour.rgb = mix(outColour.rgb, vec3(grey), intensity);
+				break;
 			}
-			else {
-				currentLayer = layers[currentLayer].parent;
 
-				if(currentLayer == -1) {
-					break;
-				}
-
-				do {
-					// Parent is a group (it has to be)
-					// Move to the next layer to avoid infinitely looping
-
-					if(layers[currentLayer].next != -1) {
-						currentLayer = layers[currentLayer].next;
-						break;
-					}
-					else {
-						// There is no next layer, move up to the parent then.
-						currentLayer = layers[currentLayer].parent;
-					}
-				} while (currentLayer != -1);
+			case 6:
+			{ // Greyscale filter (full effect)
+				float grey = (outColour.rgb.r + outColour.rgb.g + outColour.rgb.b) / 3.0;
+				outColour.rgb =vec3(grey);
+				break;
 			}
-		}
-		else if(type == 2) {
-			if(layers[currentLayer].firstChild != -1) {
-				currentLayer = layers[currentLayer].firstChild;
-			} else {
-				if(layers[currentLayer].next != -1) {
-					currentLayer = layers[currentLayer].next;
-				}
-				else {
-					currentLayer = layers[currentLayer].parent;
-				}
+
+			default:
+			{
+				return;
 			}
-		}
-		else {
-			break;
 		}
 	}
-
-	outColour = vec4(finalColour, 1.0);
 }

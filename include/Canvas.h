@@ -29,6 +29,9 @@ public:
 	virtual bool onScroll(unsigned int x, unsigned int y, int direction) override;
 };
 
-Layer & get_layer(unsigned int index);
-void set_active_layer(unsigned int index);
-unsigned int get_active_layer();
+void set_active_layer(Layer * layer);
+Layer * get_active_layer();
+Layer * get_first_layer();
+
+// false for tablet
+void set_canvas_input_device(bool mouse);

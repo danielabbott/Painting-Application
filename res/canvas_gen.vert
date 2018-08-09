@@ -1,32 +1,28 @@
 #version 140
 
-struct LayerData {
-	vec4 colour; // only if textureUnit = -1 or is a filter layer
-	int type; // 0 = None (stop iterating over array), 1 = Layer, 2 = Layer group
-	float textureIndex; // -1 = None, solid colour, 0+ = Index into array texture
-	int blendModeOrFilter; // normal, add, sub, mul, div, etc. hsv adjust, greyscale, blur, etc.
+// The Uniform block must be identical to the one in canvas_gen.frag
 
-	int firstChild; // first child layer (-1 if no children). Only if type == 2
-	int next; // Nest layer in this layer group
-	int parent;
-	
-	int imageFormat;
+struct Op {
+	int opType;
+
+	int pad0;
+	int pad1;
 	int pad2;
-}; // size = 48 bytes
+
+	vec4 colour;
+
+};
 
 layout (std140) uniform UniformData {
-	LayerData layers[64];
+	Op ops[64];
+	vec4 baseColour; // alpha component is unused
 
 	// start of this image block in texture
 	float offsetX;
 	float offsetY;
 	float width;
 	float height;
-
-	int bottomLayer; // Layer at bottom of stack (Index into layers. Could be a group)
-
-	int strokeLayer; // if not -1 then strokeImage should be sampled
-	vec2 padding;
+	
 	vec4 strokeColour;
 };
 
