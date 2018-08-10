@@ -20,10 +20,10 @@ void Brush::create(const char * fragmentShaderFile)
 	glDeleteShader(fsId);
 	matrixUniformLocation = glGetUniformLocation(shaderProgram, "matrix");
 	if(matrixUniformLocation == -1) throw runtime_error("res/brush.vert does not define uniform mat4 matrix");
-	opacityUniformLocation = glGetUniformLocation(shaderProgram, "opacity");
-	if(opacityUniformLocation == -1) {
+	strokeAlphaUniformLocation = glGetUniformLocation(shaderProgram, "strokeAlpha");
+	if(strokeAlphaUniformLocation == -1) {
 		cerr << "Error compiling " << fragmentShaderFile << endl;
-	 	throw runtime_error("Brush fragment shader does not define uniform float opacity");
+	 	throw runtime_error("Brush fragment shader does not define uniform float strokeAlpha");
 	}
 
 	GLint uniLoc = glGetUniformLocation(shaderProgram, "brushTexture");

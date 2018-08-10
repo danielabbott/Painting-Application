@@ -23,7 +23,7 @@ struct Brush {
 
 	GLuint shaderProgram;
 	GLint matrixUniformLocation;
-	GLint opacityUniformLocation;
+	GLint strokeAlphaUniformLocation;
 
 	// GLuint texture;
 

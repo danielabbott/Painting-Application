@@ -1,6 +1,8 @@
 #version 140
 
-uniform float opacity = 1.0;
+// Pressure * activeColour.a
+uniform float strokeAlpha = 1.0;
+
 uniform float hardness = 0.45; // 0 to 0.5
 
 in vec2 pass_coordinates;
@@ -14,9 +16,9 @@ void main()
 		discard;
 	}
 	else if (length > hardness) {
-		outOpacity = (1.0 - ((length-hardness) / (0.5 - hardness))) * opacity;
+		outOpacity = (1.0 - ((length-hardness) / (0.5 - hardness))) * strokeAlpha;
 	}
 	else {
-		outOpacity = opacity;
+		outOpacity = strokeAlpha;
 	}
 }

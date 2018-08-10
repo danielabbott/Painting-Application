@@ -62,7 +62,10 @@ class InputToggleButton : public UI::Button
 	}
 public:
 	InputToggleButton()
-	: UI::Button("Mouse", LEFT_RIGHT_CENTRE, TOP_BOTTOM_CENTRE) {}
+	: UI::Button("Mouse", LEFT_RIGHT_CENTRE, TOP_BOTTOM_CENTRE) {
+		useMouse = true;
+		set_canvas_input_device(true);
+	}
 };
 
 class LayerButton : public UI::Label

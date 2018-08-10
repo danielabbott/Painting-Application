@@ -765,7 +765,7 @@ static void drawStroke(int canvasXcoord, int canvasYcoord, float pressure, unsig
 	;
 
 	glUniformMatrix4fv(testBrush.matrixUniformLocation, 1, GL_FALSE, &m[0][0]);
-	glUniform1f(testBrush.opacityUniformLocation, pressure);
+	glUniform1f(testBrush.strokeAlphaUniformLocation, pressure*activeColour[3]);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -843,7 +843,7 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 	int diffY = canvasYcoord - prevCanvasCoordY;
 
 	float distance = sqrt(diffX*diffX + diffY*diffY);
-	float increment = size / 5 / distance;
+	float increment = size / 8 / distance;
 
 	for(float mul = increment; mul < 1.0f; mul += increment) {
 		drawStroke(prevCanvasCoordX + (int)(diffX * mul), prevCanvasCoordY + (int)(diffY * mul), pressure, size);

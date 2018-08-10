@@ -4,7 +4,6 @@
 #ifdef FMT_RGBA
 #define STROKE_COLOUR_TYPE vec4
 #define STROKE_COLOUR strokeColour.rgb
-#define STROKE_ALPHA strokeColour.a
 #define IMAGE_BLOCK_TEXTURE_COMPONENTS rgba
 #define DST_TYPE vec4
 #define DST_ALPHA dst.a
@@ -15,7 +14,6 @@
 #ifdef FMT_RG
 #define STROKE_COLOUR_TYPE vec2
 #define STROKE_COLOUR strokeColour.r
-#define STROKE_ALPHA strokeColour.g
 #define IMAGE_BLOCK_TEXTURE_COMPONENTS rg
 #define DST_TYPE vec2
 #define DST_ALPHA dst.g
@@ -58,7 +56,8 @@ void main()
 
 void main()
 {
-	float strokeOpacity = texture(strokeImage, pass_stroke_layer_uv_coords).r * STROKE_ALPHA;
+	// Stroke alpha is premultiplied in the stroke texture
+	float strokeOpacity = texture(strokeImage, pass_stroke_layer_uv_coords).r;
 	DST_TYPE dst = texture(imageBlock, vec3(image_block_uv_coords, textureArrayIndex)).IMAGE_BLOCK_TEXTURE_COMPONENTS;
 
 	float alpha = strokeOpacity + DST_ALPHA * (1.0 - strokeOpacity);

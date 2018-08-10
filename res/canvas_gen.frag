@@ -66,7 +66,7 @@ void main()
 
 			case 4:
 			{ // Apply stroke (uses strokeImage)
-				float strokeOpacity = texture(strokeImage, pass_canvas_coordinates).r * strokeColour.a;
+				float strokeOpacity = texture(strokeImage, pass_canvas_coordinates).r;
 				outColour.rgb = mix(outColour.rgb, strokeColour.rgb, strokeOpacity);
 				break;
 			}
