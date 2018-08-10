@@ -27,8 +27,6 @@ layout (std140) uniform UniformData {
 	float offsetY;
 	float width;
 	float height;
-
-	vec4 strokeColour; // TODO: Just use op[x].colour (will need to change in cpp)
 };
 
 
@@ -67,7 +65,7 @@ void main()
 			case 4:
 			{ // Apply stroke (uses strokeImage)
 				float strokeOpacity = texture(strokeImage, pass_canvas_coordinates).r;
-				outColour.rgb = mix(outColour.rgb, strokeColour.rgb, strokeOpacity);
+				outColour.rgb = mix(outColour.rgb, ops[opIndex].colour.rgb, strokeOpacity);
 				break;
 			}
 

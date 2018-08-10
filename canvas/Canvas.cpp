@@ -109,8 +109,6 @@ struct UniformData {
 	float offsetY;
 	float width;
 	float height;
-
-	float strokeColour[4];
 };
 
 UniformData uniformData;
@@ -470,27 +468,6 @@ void Canvas::draw() {
 
 	glBindVertexArray(vaoId);
 	if(canvasDirty) {
-		if(penDown && activeLayer) {
-			if(activeLayer->imageFormat == FMT_RGBA) {
-				uniformData.strokeColour[0] = activeColour[0];
-				uniformData.strokeColour[1] = activeColour[1];
-				uniformData.strokeColour[2] = activeColour[2];
-				uniformData.strokeColour[3] = activeColour[3];
-			}
-			else if(activeLayer->imageFormat == FMT_RG) {
-				uniformData.strokeColour[0] = activeColour[0];
-				uniformData.strokeColour[1] = activeColour[0];
-				uniformData.strokeColour[2] = activeColour[0];
-				uniformData.strokeColour[3] = activeColour[3];
-			}
-			else {
-				uniformData.strokeColour[0] = 1;
-				uniformData.strokeColour[1] = 1;
-				uniformData.strokeColour[2] = 1;
-				uniformData.strokeColour[3] = activeColour[3];
-			}
-		}
-
 		bind_shader_program(shaderProgram);
 		glDisable(GL_BLEND);
 		canvasFrameBuffer.bindFrameBuffer();
@@ -552,6 +529,24 @@ void Canvas::draw() {
 						// Stroke must be overlayed
 						Op op;
 						op.opType = 4;
+
+						if(activeLayer->imageFormat == FMT_RGBA) {
+							op.colour[0] = activeColour[0];
+							op.colour[1] = activeColour[1];
+							op.colour[2] = activeColour[2];
+						}
+						else if(activeLayer->imageFormat == FMT_RG) {
+							op.colour[0] = activeColour[0];
+							op.colour[1] = activeColour[0];
+							op.colour[2] = activeColour[0];
+						}
+						else {
+							op.colour[0] = 1;
+							op.colour[1] = 1;
+							op.colour[2] = 1;
+						}
+						op.colour[3] = activeColour[3];
+
 						ops.push_back(op);
 					}
 				}

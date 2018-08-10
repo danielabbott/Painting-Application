@@ -22,8 +22,6 @@ layout (std140) uniform UniformData {
 	float offsetY;
 	float width;
 	float height;
-	
-	vec4 strokeColour;
 };
 
 in vec2 coords;
