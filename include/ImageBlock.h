@@ -10,6 +10,8 @@
 struct ImageBlock {
 friend void Canvas::draw();
 public:
+	// Keeps track of whether anything has changed in this image bock since the last redraw..
+	bool dirty = true;
 
 	// Used for keeping track of which image blocks have been drawn on during the current stroke
 	bool hasStrokeData = false;

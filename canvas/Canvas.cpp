@@ -475,7 +475,12 @@ void Canvas::draw() {
 		glActiveTexture(GL_TEXTURE3);
 		strokeLayer.bindTexture();
 
-		for(ImageBlock const& block : imageBlocks) {
+		for(ImageBlock & block : imageBlocks) {
+			if(!block.dirty) {
+				continue;
+			}
+			block.dirty = false;
+
 			unsigned int rgbaIndex = 0;
 			unsigned int rgIndex = 0;
 			unsigned int rIndex = 0;
@@ -771,15 +776,15 @@ static void drawStroke(int canvasXcoord, int canvasYcoord, float pressure, unsig
 
 	for(int y = canvasYcoord - (int)size/2; y < canvasYcoord + (int)size/2; y += image_block_size()) {
 		for(int x = canvasXcoord - (int)size/2; x < canvasXcoord + (int)size/2; x += image_block_size()) {
-			if((block = get_image_block_at(x, y))) block->hasStrokeData = true;
+			if((block = get_image_block_at(x, y))) block->hasStrokeData = block->dirty = true;
 		}
-		if((block = get_image_block_at(canvasXcoord+size/2, y))) block->hasStrokeData = true;
+		if((block = get_image_block_at(canvasXcoord+size/2, y))) block->hasStrokeData = block->dirty = true;
 	}
 
 	for(int x = canvasXcoord - (int)size/2; x < canvasXcoord + (int)size/2; x += image_block_size()) {
-		if((block = get_image_block_at(x, canvasYcoord+size/2))) block->hasStrokeData = true;
+		if((block = get_image_block_at(x, canvasYcoord+size/2))) block->hasStrokeData = block->dirty = true;
 	}
-	if((block = get_image_block_at(canvasXcoord+size/2, canvasYcoord+size/2))) block->hasStrokeData = true;
+	if((block = get_image_block_at(canvasXcoord+size/2, canvasYcoord+size/2))) block->hasStrokeData = block->dirty = true;
 }
 
 bool useMouse = false;
@@ -885,6 +890,7 @@ bool Canvas::onScroll(unsigned int x, unsigned int y, int direction)
 void testfunc_clear_layer2()
 {
 	for(ImageBlock & block : imageBlocks) {
+		block.dirty = true;
 		block.fillLayer(firstLayer->next, 0);
 	}
 	canvasDirty = true;
