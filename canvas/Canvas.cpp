@@ -31,15 +31,15 @@ static float canvasZoom = 0.08f;
 // unsigned int canvasHeight = 1024;
 // float canvasZoom = 0.6f;
 
-// RGBA
-// For greyscale with alpha, elements 0 and 3 are used
-// For alpha-only, element 3 is used
-static float activeColour[4];
-
 
 // Position of centre of canvas on-screen (relative to top-left of UI canvas widget)
 static int canvasX = -1;
 static int canvasY = -1;
+
+// RGBA
+// For greyscale with alpha, elements 0 and 3 are used
+// For alpha-only, element 3 is used
+static float activeColour[4];
 
 static vector<ImageBlock> imageBlocks;
 static FrameBuffer strokeLayer; // Canvas-sized texture that the current stroke is painted on (alpha-only)
@@ -167,7 +167,7 @@ static inline void create_canvas_generation_shader_program()
 
 	GLuint uniBlockIndex = glGetUniformBlockIndex(shaderProgram, "UniformData");
 	if(uniBlockIndex == GL_INVALID_INDEX) throw runtime_error("Canvas shader does not define uniform block 'UniformData'");
-	glUniformBlockBinding(shaderProgram, uniBlockIndex, 0);
+	glUniformBlockBinding(shaderProgram, uniBlockIndex, 1);
 
 	bind_shader_program(shaderProgram);
 	GLint uniLoc = glGetUniformLocation(shaderProgram, "rgbaTextures");
@@ -369,6 +369,7 @@ static inline void create_opengl_buffers()
 	glGenBuffers(1, &ubo);
 	glBindBuffer(GL_UNIFORM_BUFFER, ubo);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof uniformData, NULL, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, ubo);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -613,11 +614,12 @@ void Canvas::draw() {
 			glBindBuffer(GL_UNIFORM_BUFFER, ubo);
 			glBufferData(GL_UNIFORM_BUFFER, sizeof uniformData, &uniformData, GL_DYNAMIC_DRAW);
 
-			glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		}
 	}
+
+	// Draw canvas texture on screen
 
 
 	bind_default_framebuffer();
@@ -636,9 +638,8 @@ void Canvas::draw() {
 	;
 
 	glUniformMatrix4fv(canvasTextureMatrixLocation, 1, GL_FALSE, &m[0][0]);
-	
-
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+
 
 	canvasDirty = false;
 
