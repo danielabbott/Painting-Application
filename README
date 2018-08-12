@@ -21,5 +21,35 @@ zlib (tested with 1.2.11)
 libpng (tested with 1.6.35)
 GLM (tested with 0.9.9.0)
 * GLM is header-only. The headers are included in windows_include, no .dll is needed.
+xinput (linux only, install libxi-devel when compiling on Solus)
+pkg-config (only used when compiling)
+
+== Compiling ==
+
+For Linux:
+
+0. To set up Linux for c/c++ development, run 
+	sudo eopkg install -c system.devel
+on ubuntu run
+	sudo apt-get update && sudo apt-get install build-essential
+
+1. Install the development packages for GLFW, Freetype, zlib, and libpng
+	Alternatively, modify the makefile to use the windows_include directory
+	* The versions of the headers in this folder might not match the versions installed through the package manager
+
+2. cd into the project root directory and run
+	make -j9
+
+For Windows:
+
+0. Set up MinGW for compiling C++ or use Visual Studio (you will have to set up a project yourself)
+
+1. Run windows_install.bat
+
+.dll files and header files are included
 
 
+** To debug with gdb on windows, run gdb ./paint
+Before running the program, type 
+	break abort
+into the gdb console so that gdb will stop execution when an assertation fails. 
