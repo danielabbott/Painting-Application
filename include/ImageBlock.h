@@ -7,8 +7,17 @@
 
 // An image block is a 256x256 texture/framebuffer that stores image data for that region on all layers
 
+unsigned int image_block_size();
+
 struct ImageBlock {
 friend void Canvas::draw();
+
+	// Keeps track of the region of this image block that is dirty
+	unsigned int dirtyMinX = 0;
+	unsigned int dirtyMinY = 0;
+	unsigned int dirtyWidth = image_block_size();
+	unsigned int dirtyHeight = image_block_size();
+
 public:
 	// Keeps track of whether anything has changed in this image bock since the last redraw..
 	bool dirty = true;
@@ -54,6 +63,13 @@ public:
 	ImageBlock(){}
 	ImageBlock(unsigned int x_, unsigned int y_) : x(x_), y(y_) {}
 
+	bool dirtyRegion(int x_, int y_, unsigned int width, unsigned int height);
+
+	void setClean()
+	{
+		dirty = false;
+	}
+
 	unsigned int getX() const { return x; }
 	unsigned int getY() const { return y; }
 
@@ -75,6 +91,5 @@ public:
 	void destroy();
 };
 
-unsigned int image_block_size();
 
 

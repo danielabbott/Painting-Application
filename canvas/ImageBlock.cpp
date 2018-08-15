@@ -281,3 +281,60 @@ void ImageBlock::fillLayer(Layer * layer, uint32_t colour)
 		}
 	}
 }
+
+bool ImageBlock::dirtyRegion(int x_, int y_, unsigned int width, unsigned int height)
+{
+	x_ -= (int)x;
+	y_ -= (int)y;
+
+	if(x_ < (int)image_block_size() && y_ < (int)image_block_size() &&
+		x_ + (int)width >= 0 && y_ + (int)height >= 0) {
+
+
+		if(x_ < 0) {
+			width += x_;
+			x_ = 0;
+		}
+
+		if(y_ < 0) {
+			height += y_;
+			y_ = 0;
+		}
+
+		if((unsigned)x_ + width > image_block_size()) {
+			width = image_block_size() - (unsigned)x_;
+		}
+
+		if((unsigned)y_ + height > image_block_size()) {
+			height = image_block_size() - (unsigned)y_;
+		}
+
+		if(dirty) {
+			if(x_ < (int)dirtyMinX) {
+				dirtyWidth += dirtyMinX-x_;
+				dirtyMinX = x_;
+			}
+			if(y_ < (int)dirtyMinY) {
+				dirtyHeight += dirtyMinY-y_;
+				dirtyMinY = y_;
+			}
+			if(x_+width > dirtyMinX+dirtyWidth){
+				dirtyWidth = x_+width - dirtyMinX;
+			}
+			if(y_+height > dirtyMinY+dirtyHeight){
+				dirtyHeight = y_+height - dirtyMinY;
+			}
+
+		}
+		else {
+			dirtyMinX = x_;
+			dirtyMinY = y_;
+			dirtyWidth = width;
+			dirtyHeight = height;
+			dirty = true;
+		}
+
+		return true;
+	}
+	return false;
+}

@@ -10,10 +10,6 @@ struct Op {
 	// See switch statement in main function for what each value does
 	int opType;
 
-	int pad0;
-	int pad1;
-	int pad2;
-
 	vec4 colour;
 
 };
@@ -27,6 +23,12 @@ layout (std140) uniform UniformData {
 	float offsetY;
 	float width;
 	float height;
+
+	
+	float uvX;
+	float uvY;
+	float uvWidth;
+	float uvHeight;
 };
 
 
@@ -38,8 +40,13 @@ out vec4 outColour;
 void main()
 {
 	outColour = vec4(baseColour.rgb, 1.0);
-	for(int opIndex = 0; opIndex < 64; opIndex++) {
+	for(int opIndex = 0;; opIndex++) {
+		bool stop = false;
+
 		switch(ops[opIndex].opType) {
+			case 0:
+				stop = true;
+				break;
 
 			case 1:
 			{ // Normal blend colour (use vec4 colour)
@@ -83,11 +90,15 @@ void main()
 				outColour.rgb =vec3(grey);
 				break;
 			}
+		}
 
-			default:
-			{
-				return;
-			}
+
+		if(opIndex == 63) {
+			break;
+		}
+
+		if(stop) {
+			break;
 		}
 	}
 }

@@ -41,7 +41,9 @@ static int canvasY = -1;
 // For alpha-only, element 3 is used
 static float activeColour[4];
 
+// TODO Maybe use an quadtree instead of a list 
 static vector<ImageBlock> imageBlocks;
+
 static FrameBuffer strokeLayer; // Canvas-sized texture that the current stroke is painted on (alpha-only)
 static FrameBuffer canvasFrameBuffer;
 static FrameBuffer imageBlockTempLayerRGBA;
@@ -67,7 +69,7 @@ void create_layers()
 	activeColour[0] = 1;
 	activeColour[1] = 0;
 	activeColour[2] = 0;
-	activeColour[3] = 0.95f;
+	activeColour[3] = 0.6f;
 }
 
 Layer * get_first_layer()
@@ -109,6 +111,12 @@ struct UniformData {
 	float offsetY;
 	float width;
 	float height;
+
+
+	float uvX;
+	float uvY;
+	float uvWidth;
+	float uvHeight;
 };
 
 UniformData uniformData;
@@ -480,7 +488,7 @@ void Canvas::draw() {
 			if(!block.dirty) {
 				continue;
 			}
-			block.dirty = false;
+			block.setClean();
 
 			unsigned int rgbaIndex = 0;
 			unsigned int rgIndex = 0;
@@ -579,10 +587,15 @@ void Canvas::draw() {
 
 			memcpy(uniformData.ops, ops.data(), (ops.size() > 64 ? 64 : ops.size()) * sizeof(Op));
 
-			uniformData.offsetX = ((block.getX() / (float)canvasWidth) * 2.0f) - 1.0f;
-			uniformData.offsetY = (((1.0f - ((block.getY() + image_block_size()) / (float)canvasHeight)) * 2.0f) - 1.0f);
-			uniformData.width   = ((image_block_size() / (float)canvasWidth) * 2.0f);
-			uniformData.height  = ((image_block_size() / (float)canvasHeight) * 2.0f);
+			uniformData.offsetX = (((block.getX() + block.dirtyMinX) / (float)canvasWidth) * 2.0f) - 1.0f;
+			uniformData.offsetY = (((1.0f - (block.getY() + block.dirtyMinY + block.dirtyHeight) / (float)canvasHeight) * 2.0f) - 1.0f);
+			uniformData.width   = ((block.dirtyWidth / (float)canvasWidth) * 2.0f);
+			uniformData.height  = ((block.dirtyHeight / (float)canvasHeight) * 2.0f);
+
+			uniformData.uvX = block.dirtyMinX / (float)image_block_size();
+			uniformData.uvY = block.dirtyMinY / (float)image_block_size();
+			uniformData.uvWidth = block.dirtyWidth / (float)image_block_size();
+			uniformData.uvHeight = block.dirtyHeight / (float)image_block_size();
 
 			glActiveTexture(GL_TEXTURE0);
 
@@ -709,15 +722,17 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 				float strokeImageWidth  = image_block_size() / (float)canvasWidth;
 				float strokeImageHeight = image_block_size() / (float)canvasHeight;
 
-				glUniform4f(strokeMergeCoordsLocationRGBA, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
 
 				if(activeLayer->imageFormat == FMT_RGBA) {
+					glUniform4f(strokeMergeCoordsLocationRGBA, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
 					glUniform1f(strokeMergeIndexLocationRGBA, block.indexOf(activeLayer));
 				}
 				else if(activeLayer->imageFormat == FMT_RG) {
+					glUniform4f(strokeMergeCoordsLocationRG, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
 					glUniform1f(strokeMergeIndexLocationRG, block.indexOf(activeLayer));
 				}
 				else {
+					glUniform4f(strokeMergeCoordsLocationR, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
 					glUniform1f(strokeMergeIndexLocationR, block.indexOf(activeLayer));
 				}
 
@@ -773,19 +788,12 @@ static void drawStroke(int canvasXcoord, int canvasYcoord, float pressure, unsig
 
 	// Set flag in appropriate image block(s)
 
-	ImageBlock * block;
-
-	for(int y = canvasYcoord - (int)size/2; y < canvasYcoord + (int)size/2; y += image_block_size()) {
-		for(int x = canvasXcoord - (int)size/2; x < canvasXcoord + (int)size/2; x += image_block_size()) {
-			if((block = get_image_block_at(x, y))) block->hasStrokeData = block->dirty = true;
+	for(ImageBlock & block : imageBlocks) {
+		if(block.dirtyRegion(canvasXcoord-size/2, canvasYcoord-size/2, size, size)) {
+			block.hasStrokeData = true;
 		}
-		if((block = get_image_block_at(canvasXcoord+size/2, y))) block->hasStrokeData = block->dirty = true;
 	}
 
-	for(int x = canvasXcoord - (int)size/2; x < canvasXcoord + (int)size/2; x += image_block_size()) {
-		if((block = get_image_block_at(x, canvasYcoord+size/2))) block->hasStrokeData = block->dirty = true;
-	}
-	if((block = get_image_block_at(canvasXcoord+size/2, canvasYcoord+size/2))) block->hasStrokeData = block->dirty = true;
 }
 
 bool useMouse = false;
@@ -820,7 +828,7 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 		}
 	}
 
-	unsigned int size = 100;
+	unsigned int size = 1000;
 
 
 	bind_shader_program(testBrush.shaderProgram);
@@ -891,7 +899,7 @@ bool Canvas::onScroll(unsigned int x, unsigned int y, int direction)
 void testfunc_clear_layer2()
 {
 	for(ImageBlock & block : imageBlocks) {
-		block.dirty = true;
+		block.dirtyRegion(block.getX(), block.getY(), image_block_size(), image_block_size());
 		block.fillLayer(firstLayer->next, 0);
 	}
 	canvasDirty = true;

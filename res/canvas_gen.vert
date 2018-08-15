@@ -5,10 +5,6 @@
 struct Op {
 	int opType;
 
-	int pad0;
-	int pad1;
-	int pad2;
-
 	vec4 colour;
 
 };
@@ -22,6 +18,12 @@ layout (std140) uniform UniformData {
 	float offsetY;
 	float width;
 	float height;
+
+
+	float uvX;
+	float uvY;
+	float uvWidth;
+	float uvHeight;
 };
 
 in vec2 coords;
@@ -33,10 +35,10 @@ out vec2 pass_canvas_coordinates;
 void main()
 {
 	vec2 canvasFrameBufferCoordinates = vec2(offsetX + coords.x * width, offsetY + coords.y * height);
-	gl_Position = vec4(canvasFrameBufferCoordinates.xy, 0, 1);
+	gl_Position = vec4(canvasFrameBufferCoordinates, 0, 1);
 
 	// Convert to texture coordinates
 	pass_canvas_coordinates = (canvasFrameBufferCoordinates + 1.0) * 0.5;
 
-	pass_coordinates = uv_coords;
+	pass_coordinates = vec2(uvX + uv_coords.x * uvWidth, (uvY + uv_coords.y * uvHeight));
 }
