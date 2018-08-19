@@ -21,10 +21,10 @@ class Widget {
 
 public:
 
-	enum LeftRightAlignment {
+	enum class LeftRightAlignment {
 		LEFT, LEFT_RIGHT_CENTRE, RIGHT
 	};
-	enum TopBottomAlignment {
+	enum class TopBottomAlignment {
 		TOP, TOP_BOTTOM_CENTRE, BOTTOM
 	};
 
@@ -54,7 +54,7 @@ protected:
 public:
 
 	Widget();
-	Widget(unsigned int x_, unsigned int y_, unsigned int w_, unsigned int h_, LeftRightAlignment leftRightTextAlign = LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TOP_BOTTOM_CENTRE);
+	Widget(unsigned int x_, unsigned int y_, unsigned int w_, unsigned int h_, LeftRightAlignment leftRightTextAlign = LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TopBottomAlignment::TOP_BOTTOM_CENTRE);
 
 	uint32_t getActualX() { return actualX; }
 	uint32_t getActualY() { return actualY; }
@@ -140,14 +140,14 @@ class Container : public Widget {
 
 public:
 
-	enum LayoutManager {
+	enum class LayoutManager {
 		// Preferred x,y,width,height of widgets are used directly.
 		// Preferred width and height of container are used
 		NONE,
 
 		// Preferred width,height of widgets are used directly. Preferred x,y ignored.
 		// Preferred width and height of container are ignored
-		FLOW_ACROSS,
+		FLOW_ACCROSS,
 
 		// Preferred width,height of widgets are used directly. Preferred x,y ignored.
 		// Preferred width and height of container are ignored
@@ -188,7 +188,7 @@ public:
 	// If w/h is 0, returns minimum size required to fit widgets (depends on layout manager)
 	virtual void getDimensions(unsigned int & width, unsigned int & height);
 
-	enum EventHandlerOutcome {
+	enum class EventHandlerOutcome {
 		NOTHING, CONTAINER_INTERACTED_WITH, WIDGET_INTERACTED_WITH
 	};
 
@@ -211,9 +211,9 @@ protected:
 	unsigned int textWidth;
 public:
 	Label(std::string text_, unsigned int x, unsigned int y, 
-		LeftRightAlignment leftRightTextAlign = LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TOP_BOTTOM_CENTRE);
+		LeftRightAlignment leftRightTextAlign = LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TopBottomAlignment::TOP_BOTTOM_CENTRE);
 
-	Label(std::string text_, LeftRightAlignment leftRightTextAlign = LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TOP_BOTTOM_CENTRE);
+	Label(std::string text_, LeftRightAlignment leftRightTextAlign = LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TopBottomAlignment::TOP_BOTTOM_CENTRE);
 
 	virtual std::string const& getText() override;
 	virtual void getDimensions(unsigned int & width, unsigned int & height) override;
@@ -222,7 +222,7 @@ public:
 class Button : public Label {
 bool beingClicked = false;
 public:
-	Button(std::string text_, LeftRightAlignment leftRightTextAlign = LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TOP_BOTTOM_CENTRE);
+	Button(std::string text_, LeftRightAlignment leftRightTextAlign = LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TopBottomAlignment::TOP_BOTTOM_CENTRE);
 
 	virtual uint32_t getBackGroundColour() override;
 	virtual bool onClicked(unsigned int button, unsigned int x, unsigned int y) override;

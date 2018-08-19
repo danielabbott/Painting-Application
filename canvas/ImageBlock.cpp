@@ -32,16 +32,16 @@ void ImageBlock::create()
 	}
 
 	while(1) {
-		if(layer->type == Layer::LAYER) {
-			if(layer->imageFormat == FMT_RGBA) {
+		if(layer->type == Layer::Type::LAYER) {
+			if(layer->imageFormat == ImageFormat::FMT_RGBA) {
 				layer->imageFormatSpecificIndex = numRGBA;
 				numRGBA++;
 			}
-			else if(layer->imageFormat == FMT_RG) {
+			else if(layer->imageFormat == ImageFormat::FMT_RG) {
 				layer->imageFormatSpecificIndex = numRG;
 				numRG++;
 			}
-			else if(layer->imageFormat == FMT_R) {
+			else if(layer->imageFormat == ImageFormat::FMT_R) {
 				layer->imageFormatSpecificIndex = numR;
 				numR++;
 			}
@@ -49,7 +49,7 @@ void ImageBlock::create()
 
 
 		if(layer->firstChild) {
-			assert(layer->type == Layer::LAYER);
+			assert(layer->type == Layer::Type::LAYER);
 			layer = layer->firstChild;
 		}
 		else {
@@ -70,7 +70,7 @@ void ImageBlock::create()
 	layersR = vector<LayerData>(numR);
 
 	if(numRGBA) {
-		arrayTextureRGBA.create(FMT_RGBA, image_block_size(), numRGBA);
+		arrayTextureRGBA.create(ImageFormat::FMT_RGBA, image_block_size(), numRGBA);
 
 		if(GLAD_GL_ARB_clear_texture) {
 			arrayTextureRGBA.clear(0x00ffffff);
@@ -89,7 +89,7 @@ void ImageBlock::create()
 
 	}
 	if(numRG) {
-		arrayTextureRG.create(FMT_RG, image_block_size(), numRG);
+		arrayTextureRG.create(ImageFormat::FMT_RG, image_block_size(), numRG);
 
 		if(GLAD_GL_ARB_clear_texture) {
 			arrayTextureRG.clear(0x00ff);
@@ -107,7 +107,7 @@ void ImageBlock::create()
 		}
 	}
 	if(numR) {
-		arrayTextureR.create(FMT_R, image_block_size(), numR);
+		arrayTextureR.create(ImageFormat::FMT_R, image_block_size(), numR);
 
 		if(GLAD_GL_ARB_clear_texture) {
 			arrayTextureR.clear();
@@ -169,17 +169,17 @@ void ImageBlock::bindFrameBuffer(Layer * layer)
 {
 	assert(layer);
 
-	if(layer->imageFormat == FMT_RGBA) {
+	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
 		layersRGBA[layer->imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
-		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::ACTUAL_DATA;
+		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
 	}
-	else if(layer->imageFormat == FMT_RG) {
+	else if(layer->imageFormat == ImageFormat::FMT_RG) {
 		layersRG[layer->imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
-		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::ACTUAL_DATA;
+		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
 	}
-	else if(layer->imageFormat == FMT_R) {
+	else if(layer->imageFormat == ImageFormat::FMT_R) {
 		layersR[layer->imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
-		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::ACTUAL_DATA;
+		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
 	}
 }
 
@@ -187,13 +187,13 @@ void ImageBlock::bindTexture(Layer * layer)
 {
 	assert(layer);
 
-	if(layer->imageFormat == FMT_RGBA) {
+	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
 		arrayTextureRGBA.bind();
 	}
-	else if(layer->imageFormat == FMT_RG) {
+	else if(layer->imageFormat == ImageFormat::FMT_RG) {
 		arrayTextureRG.bind();
 	}
-	else if(layer->imageFormat == FMT_R) {
+	else if(layer->imageFormat == ImageFormat::FMT_R) {
 		arrayTextureR.bind();
 	}
 }
@@ -203,16 +203,16 @@ void ImageBlock::copyTo(Layer * layer)
 {
 	assert(layer);
 
-	if(layer->imageFormat == FMT_RGBA) {
-		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::ACTUAL_DATA;
+	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
+		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
 		arrayTextureRGBA.copy(layer->imageFormatSpecificIndex);
 	}
-	else if(layer->imageFormat == FMT_RG) {
-		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::ACTUAL_DATA;
+	else if(layer->imageFormat == ImageFormat::FMT_RG) {
+		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
 		arrayTextureRG.copy(layer->imageFormatSpecificIndex);
 	}
-	else if(layer->imageFormat == FMT_R) {
-		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::ACTUAL_DATA;
+	else if(layer->imageFormat == ImageFormat::FMT_R) {
+		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
 		arrayTextureR.copy(layer->imageFormatSpecificIndex);
 	}
 	else {
@@ -224,16 +224,16 @@ void ImageBlock::uploadImage(Layer * layer, unsigned int x, unsigned int y, unsi
 {
 	assert(layer);
 
-	if(layer->imageFormat == FMT_RGBA) {
-		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::ACTUAL_DATA;
+	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
+		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
 		arrayTextureRGBA.uploadImage(layer->imageFormatSpecificIndex, x, y, width, height, data, stride, sourceType);
 	}
-	else if(layer->imageFormat == FMT_RG) {
-		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::ACTUAL_DATA;
+	else if(layer->imageFormat == ImageFormat::FMT_RG) {
+		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
 		arrayTextureRG.uploadImage(layer->imageFormatSpecificIndex, x, y, width, height, data, stride, sourceType);
 	}
-	else if(layer->imageFormat == FMT_R) {
-		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::ACTUAL_DATA;
+	else if(layer->imageFormat == ImageFormat::FMT_R) {
+		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
 		arrayTextureR.uploadImage(layer->imageFormatSpecificIndex, x, y, width, height, data, stride, sourceType);
 	}
 }
@@ -242,8 +242,8 @@ void ImageBlock::fillLayer(Layer * layer, uint32_t colour)
 {
 	assert(layer);
 
-	if(layer->imageFormat == FMT_RGBA) {
-		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::SOLID_COLOUR;
+	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
+		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::SOLID_COLOUR;
 		layersRGBA[layer->imageFormatSpecificIndex].colour = colour;
 
 		if(GLAD_GL_ARB_clear_texture) {
@@ -255,8 +255,8 @@ void ImageBlock::fillLayer(Layer * layer, uint32_t colour)
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 	}
-	else if(layer->imageFormat == FMT_RG) {
-		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::SOLID_COLOUR;
+	else if(layer->imageFormat == ImageFormat::FMT_RG) {
+		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::SOLID_COLOUR;
 		layersRG[layer->imageFormatSpecificIndex].colour = colour;
 
 		if(GLAD_GL_ARB_clear_texture) {
@@ -268,8 +268,8 @@ void ImageBlock::fillLayer(Layer * layer, uint32_t colour)
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 	}
-	else if(layer->imageFormat == FMT_R) {
-		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::SOLID_COLOUR;
+	else if(layer->imageFormat == ImageFormat::FMT_R) {
+		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::SOLID_COLOUR;
 		layersR[layer->imageFormatSpecificIndex].colour = colour;
 
 		if(GLAD_GL_ARB_clear_texture) {

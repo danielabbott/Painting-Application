@@ -6,21 +6,21 @@
 // Layers are stored in a fixed-size array in Canvas.cpp
 
 struct Layer {
-	enum Type {
+	enum class Type {
 		LAYER, LAYER_GROUP
 	};
 
-	Type type = LAYER;
+	Type type = Type::LAYER;
 
 	std::string name;
-	ImageFormat imageFormat = FMT_RGBA;
+	ImageFormat imageFormat = ImageFormat::FMT_RGBA;
 
-	enum Mode {
+	enum class Mode {
 		BLEND_MODE_NORMAL, BLEND_MODE_ADD, BLEND_MODE_SUB, BLEND_MODE_MUL, BLEND_MODE_DIV,
 		FILTER_HSV_ADJUST, FILTER_GREYSCALE, FILTER_BLUR
 	};
 
-	Mode mode = BLEND_MODE_NORMAL;
+	Mode mode = Mode::BLEND_MODE_NORMAL;
 
 	Layer * firstChild = nullptr;
 	Layer * next = nullptr; // The layer above
@@ -31,7 +31,7 @@ struct Layer {
 	unsigned int imageFormatSpecificIndex = -1;
 
 	Layer() {}
-	Layer(std::string name_) : type(LAYER), name(name_) {}
+	Layer(std::string name_) : type(Type::LAYER), name(name_) {}
 };
 
 // TODO Remove this. This is just for testing things

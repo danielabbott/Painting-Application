@@ -18,13 +18,13 @@ void ArrayTexture::create(ImageFormat type_, unsigned int wh, unsigned int image
 	glBindTexture(GL_TEXTURE_2D_ARRAY, id);
 
 	if(GLAD_GL_ARB_texture_storage) {
-		if(type == FMT_RGBA) {
+		if(type == ImageFormat::FMT_RGBA) {
 			glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_SRGB8_ALPHA8, widthHeight, widthHeight, imageCount);
 		}
-		else if(type == FMT_RG) {
+		else if(type == ImageFormat::FMT_RG) {
 			glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RG8, widthHeight, widthHeight, imageCount);
 		}
-		else if(type == FMT_R) {
+		else if(type == ImageFormat::FMT_R) {
 			glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, widthHeight, widthHeight, imageCount);	    	
 		}
 		else {
@@ -32,13 +32,13 @@ void ArrayTexture::create(ImageFormat type_, unsigned int wh, unsigned int image
 		}
 	}
 	else {
-		if(type == FMT_RGBA) {
+		if(type == ImageFormat::FMT_RGBA) {
 	    	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_SRGB8_ALPHA8, widthHeight, widthHeight, imageCount, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		}
-		else if (type == FMT_RG) {
+		else if (type == ImageFormat::FMT_RG) {
 	    	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RG8, widthHeight, widthHeight, imageCount, 0, GL_RG, GL_UNSIGNED_BYTE, NULL);
 		}
-		else if (type == FMT_R) {
+		else if (type == ImageFormat::FMT_R) {
 	    	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_R8, widthHeight, widthHeight, imageCount, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 		}
 		else {
@@ -72,13 +72,13 @@ void ArrayTexture::clear(uint32_t colour)
 void ArrayTexture::upload(void * data, unsigned int firstImage, unsigned int imagesToFill)
 {
 	assert(data);
-	if(type == FMT_RGBA) {
+	if(type == ImageFormat::FMT_RGBA) {
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, firstImage, widthHeight, widthHeight, imagesToFill, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	}
-	else if (type == FMT_RG) {
+	else if (type == ImageFormat::FMT_RG) {
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, firstImage, widthHeight, widthHeight, imagesToFill, GL_RG, GL_UNSIGNED_BYTE, data);
 	}
-	else if (type == FMT_R) {
+	else if (type == ImageFormat::FMT_R) {
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, firstImage, widthHeight, widthHeight, imagesToFill, GL_RED, GL_UNSIGNED_BYTE, data);
 	}
 	else {
@@ -109,13 +109,13 @@ void ArrayTexture::uploadImage(unsigned int layerIndex, unsigned int x, unsigned
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, stride);
 	}
 
-	if(sourceType == FMT_RGBA) {
+	if(sourceType == ImageFormat::FMT_RGBA) {
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, x, y, layerIndex, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	}
-	else if (sourceType == FMT_RG) {
+	else if (sourceType == ImageFormat::FMT_RG) {
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, x, y, layerIndex, width, height, 1, GL_RG, GL_UNSIGNED_BYTE, data);
 	}
-	else if (sourceType == FMT_R) {
+	else if (sourceType == ImageFormat::FMT_R) {
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, x, y, layerIndex, width, height, 1, GL_RED, GL_UNSIGNED_BYTE, data);
 	}
 	else {

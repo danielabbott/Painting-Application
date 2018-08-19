@@ -240,12 +240,12 @@ static inline void create_opengl_images()
 		throw runtime_error("Canvas too big (exceeds OpenGL limitations)");
 	}
 
-	canvasResources.canvasFrameBuffer.create(FMT_RGBA, canvasResources.canvasWidth, canvasResources.canvasHeight);
-	canvasResources.strokeLayer.create(FMT_R, canvasResources.canvasWidth, canvasResources.canvasHeight);
+	canvasResources.canvasFrameBuffer.create(ImageFormat::FMT_RGBA, canvasResources.canvasWidth, canvasResources.canvasHeight);
+	canvasResources.strokeLayer.create(ImageFormat::FMT_R, canvasResources.canvasWidth, canvasResources.canvasHeight);
 	canvasResources.strokeLayer.clear();
-	canvasResources.imageBlockTempLayerRGBA.create(FMT_RGBA, image_block_size(), image_block_size());
-	canvasResources.imageBlockTempLayerRG.create(FMT_RG, image_block_size(), image_block_size());
-	canvasResources.imageBlockTempLayerR.create(FMT_R, image_block_size(), image_block_size());
+	canvasResources.imageBlockTempLayerRGBA.create(ImageFormat::FMT_RGBA, image_block_size(), image_block_size());
+	canvasResources.imageBlockTempLayerRG.create(ImageFormat::FMT_RG, image_block_size(), image_block_size());
+	canvasResources.imageBlockTempLayerR.create(ImageFormat::FMT_R, image_block_size(), image_block_size());
 
 	canvasResources.imageBlocks = vector<ImageBlock>(((canvasResources.canvasHeight + image_block_size() - 1) / image_block_size()) * ((canvasResources.canvasWidth + image_block_size() - 1) / image_block_size()));
 

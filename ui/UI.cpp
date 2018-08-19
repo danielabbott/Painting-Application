@@ -71,7 +71,7 @@ void Container::bake()
 		}
 	}
 
-	if(layoutManager == NONE) {
+	if(layoutManager == LayoutManager::NONE) {
 		actualWidth = w;
 		actualHeight = h;
 
@@ -83,7 +83,7 @@ void Container::bake()
 			widget->getDimensions(widget->actualWidth, widget->actualHeight);
 		}
 	}
-	else if(layoutManager == BORDER) {
+	else if(layoutManager == LayoutManager::BORDER) {
 		assert(widgets.size() <= 9);
 
 		actualWidth = w;
@@ -314,7 +314,7 @@ void Container::bake()
 
 	}
 
-	else if(layoutManager == FLOW_DOWN) {
+	else if(layoutManager == LayoutManager::FLOW_DOWN) {
 		getDimensions(actualWidth, actualHeight);
 
 		unsigned int widgetY = 0;
@@ -331,7 +331,7 @@ void Container::bake()
 		}
 	}
 
-	else if(layoutManager == FLOW_ACROSS) {
+	else if(layoutManager == LayoutManager::FLOW_ACCROSS) {
 		getDimensions(actualWidth, actualHeight);
 
 		unsigned int widgetX = 0;
@@ -363,7 +363,7 @@ void Container::getDimensions(unsigned int & width, unsigned int & height)
 		}
 	}
 
-	if(layoutManager == BORDER) {
+	if(layoutManager == LayoutManager::BORDER) {
 		// TODO Work out minimum width required
 		if(!w) {
 			width = 0;
@@ -373,7 +373,7 @@ void Container::getDimensions(unsigned int & width, unsigned int & height)
 		}
 		return;
 	}
-	else if(layoutManager == NONE) {
+	else if(layoutManager == LayoutManager::NONE) {
 		unsigned int minWidth = 0;
 		unsigned int minHeight = 0;
 
@@ -402,7 +402,7 @@ void Container::getDimensions(unsigned int & width, unsigned int & height)
 
 		return;
 	}
-	else if(layoutManager == FLOW_DOWN) {
+	else if(layoutManager == LayoutManager::FLOW_DOWN) {
 		unsigned int maxWidth = 0;
 		unsigned int minHeight = 0;
 
@@ -426,7 +426,7 @@ void Container::getDimensions(unsigned int & width, unsigned int & height)
 			height = minHeight;
 		}
 	}
-	else if(layoutManager == FLOW_ACROSS) {
+	else if(layoutManager == LayoutManager::FLOW_ACCROSS) {
 		unsigned int minWidth = 0;
 		unsigned int maxHeight = 0;
 
@@ -503,13 +503,13 @@ void mouse_clicked(unsigned int button, unsigned int x, unsigned int y, bool but
 	if(buttonDown) {
 		widgetBeingClicked[button] = nullptr;
 		widgetBeingClickedIsInMenuOverlay[button] = true;
-		Container::EventHandlerOutcome outcome = Container::NOTHING;
+		Container::EventHandlerOutcome outcome = Container::EventHandlerOutcome::NOTHING;
 
 		if(rootContainer2 && rootContainer2->onClicked_(button, x-rootContainer2X-rootContainer2->getActualX(), y-rootContainer2Y-rootContainer2->getActualY(), outcome)) {
 			globalDirtyFlag = true;
 		}
 
-		if(outcome == Container::NOTHING) {
+		if(outcome == Container::EventHandlerOutcome::NOTHING) {
 			if(rootContainer2) {
 				rootContainer2 = nullptr;
 				globalDirtyFlag = true;
@@ -547,12 +547,12 @@ void mouse_clicked(unsigned int button, unsigned int x, unsigned int y, bool but
 
 void stylus_moved(unsigned int x, unsigned int y, float pressure)
 {
-	Container::EventHandlerOutcome outcome = Container::NOTHING;
+	Container::EventHandlerOutcome outcome = Container::EventHandlerOutcome::NOTHING;
 	if(rootContainer2 && rootContainer2->onMouseMoved_(x-rootContainer2X-rootContainer2->getActualX(), y-rootContainer2Y-rootContainer2->getActualY(), pressure, outcome)) {
 		globalDirtyFlag = true;
 	}
 
-	if(rootContainer && outcome == Container::NOTHING) {
+	if(rootContainer && outcome == Container::EventHandlerOutcome::NOTHING) {
 		if(rootContainer->onMouseMoved_(x-rootContainer->getActualX(), y-rootContainer->getActualY(), pressure, outcome)) {
 			globalDirtyFlag = true;
 		}
@@ -561,12 +561,12 @@ void stylus_moved(unsigned int x, unsigned int y, float pressure)
 
 void mouse_moved(unsigned int x, unsigned int y)
 {
-	Container::EventHandlerOutcome outcome = Container::NOTHING;
+	Container::EventHandlerOutcome outcome = Container::EventHandlerOutcome::NOTHING;
 	if(rootContainer2 && rootContainer2->onMouseMoved_(x-rootContainer2X-rootContainer2->getActualX(), y-rootContainer2Y-rootContainer2->getActualY(), -1, outcome)) {
 		globalDirtyFlag = true;
 	}
 
-	if(rootContainer && outcome == Container::NOTHING) {
+	if(rootContainer && outcome == Container::EventHandlerOutcome::NOTHING) {
 		if(rootContainer->onMouseMoved_(x-rootContainer->getActualX(), y-rootContainer->getActualY(), -1, outcome)) {
 			globalDirtyFlag = true;
 		}
@@ -577,12 +577,12 @@ void scroll(unsigned int mouseX, unsigned int mouseY, int x, int y)
 {
 	(void)x;
 
-	Container::EventHandlerOutcome outcome = Container::NOTHING;
+	Container::EventHandlerOutcome outcome = Container::EventHandlerOutcome::NOTHING;
 	if(rootContainer2 && rootContainer2->onScroll_(mouseX-rootContainer2X-rootContainer2->getActualX(), mouseY-rootContainer2Y-rootContainer2->getActualY(), y, outcome)) {
 		globalDirtyFlag = true;
 	}
 
-	if(rootContainer && outcome == Container::NOTHING) {
+	if(rootContainer && outcome == Container::EventHandlerOutcome::NOTHING) {
 		if(rootContainer->onScroll_(mouseX-rootContainer->getActualX(), mouseY-rootContainer->getActualY(), y, outcome)) {
 			globalDirtyFlag = true;
 		}
@@ -735,10 +735,10 @@ void Container::draw(vector<Canvas *> & canvases, unsigned int xOffset, unsigned
 			unsigned int textColour = widget->getTextColour();
 
 			unsigned int textX;
-			if(widget->leftRightTextAlign == LEFT) {
+			if(widget->leftRightTextAlign == LeftRightAlignment::LEFT) {
 				textX = (widget->actualX + 2) * 64;
 			}
-			else if (widget->leftRightTextAlign == LEFT_RIGHT_CENTRE)
+			else if (widget->leftRightTextAlign == LeftRightAlignment::LEFT_RIGHT_CENTRE)
 			{
 				textX = widget->actualX*64 + (widget->actualWidth/2)*64 - textWidth/2;
 			}
@@ -747,10 +747,10 @@ void Container::draw(vector<Canvas *> & canvases, unsigned int xOffset, unsigned
 			}
 
 			unsigned int textY;
-			if(widget->topBottomTextAlign == TOP) {
+			if(widget->topBottomTextAlign == TopBottomAlignment::TOP) {
 				textY = widget->actualY + 14;
 			}
-			else if(widget->topBottomTextAlign == TOP_BOTTOM_CENTRE) {
+			else if(widget->topBottomTextAlign == TopBottomAlignment::TOP_BOTTOM_CENTRE) {
 				textY = widget->actualY + widget->actualHeight/2 + 14/2 - 4;
 			}
 			else {

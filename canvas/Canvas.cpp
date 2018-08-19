@@ -24,9 +24,9 @@ void create_layers()
 {
 
 
-	layers[0].type = Layer::LAYER;
+	layers[0].type = Layer::Type::LAYER;
 	layers[0].name = "bottom layer";
-	layers[1].type = Layer::LAYER;
+	layers[1].type = Layer::Type::LAYER;
 	layers[1].name = "top layer";
 
 	canvasResources.firstLayer = &layers[0];
@@ -47,7 +47,7 @@ Layer * get_first_layer()
 void set_active_layer(Layer * layer)
 {
 	// TODO have layer groups selectable just don't allow drawing on them
-	assert(layer->type == Layer::LAYER);
+	assert(layer->type == Layer::Type::LAYER);
 	canvasResources.activeLayer = layer;
 }
 
@@ -83,13 +83,13 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 
 		// Stylus was lifted up, merge the stroke layer with the active layer and clear the stroke layer
 
-		if(canvasResources.activeLayer->imageFormat == FMT_RGBA) {
+		if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
 			bind_shader_program(canvasResources.strokeMergeShaderProgramRGBA);
 			glUniform4f(canvasResources.strokeMergeColourLocationRGBA, canvasResources.activeColour[0], canvasResources.activeColour[1], 
 				canvasResources.activeColour[2], canvasResources.activeColour[3]);
 			canvasResources.imageBlockTempLayerRGBA.bindFrameBuffer();
 		}
-		else if(canvasResources.activeLayer->imageFormat == FMT_RG) {
+		else if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_RG) {
 			bind_shader_program(canvasResources.strokeMergeShaderProgramRG);
 			glUniform2f(canvasResources.strokeMergeColourLocationRG, canvasResources.activeColour[0], canvasResources.activeColour[3]);
 			canvasResources.imageBlockTempLayerRG.bindFrameBuffer();
@@ -116,11 +116,11 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 				float strokeImageHeight = image_block_size() / (float)canvasResources.canvasHeight;
 
 
-				if(canvasResources.activeLayer->imageFormat == FMT_RGBA) {
+				if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
 					glUniform4f(canvasResources.strokeMergeCoordsLocationRGBA, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
 					glUniform1f(canvasResources.strokeMergeIndexLocationRGBA, block.indexOf(canvasResources.activeLayer));
 				}
-				else if(canvasResources.activeLayer->imageFormat == FMT_RG) {
+				else if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_RG) {
 					glUniform4f(canvasResources.strokeMergeCoordsLocationRG, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
 					glUniform1f(canvasResources.strokeMergeIndexLocationRG, block.indexOf(canvasResources.activeLayer));
 				}

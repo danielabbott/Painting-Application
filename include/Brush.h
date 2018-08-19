@@ -13,13 +13,13 @@ struct Brush {
 
 	float opacity = 1;
 
-	enum BrushType {
+	enum class BrushType {
 		SQUARE, // Can also be a rectangle (see float height)
 		CIRCLE, // Can also be a oval (see float height)
 		// TEXTURED,
 	};
 
-	BrushType brushType = SQUARE;
+	BrushType brushType = BrushType::SQUARE;
 
 	GLuint shaderProgram;
 	GLint matrixUniformLocation;

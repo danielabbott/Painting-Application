@@ -3,7 +3,7 @@
 #include <vector>
 #include <cstdio>
 
-enum ImageFormat {
+enum class ImageFormat {
 	FMT_RGBA, // Regular colour format
 	FMT_RG, // For greyscale images - R is brightness and G is opacity
 	FMT_R // For filter layers - R is opacity

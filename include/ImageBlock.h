@@ -29,12 +29,12 @@ public:
 	struct LayerData {
 		unsigned int layer; // Index into global layers std::vector
 
-		enum DataType {
+		enum class DataType {
 			SOLID_COLOUR,
 			ACTUAL_DATA
 		};
 
-		DataType dataType = SOLID_COLOUR;
+		DataType dataType = DataType::SOLID_COLOUR;
 		// unsigned int arrayTextureIndex; // if dataType == ACTUAL_DATA
 
 		// If dataType == SOLID_COLOUR

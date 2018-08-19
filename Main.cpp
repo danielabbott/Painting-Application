@@ -28,7 +28,7 @@ class MyButton : public UI::Button
 	}
 public:
 	MyButton(string text_)
-	: UI::Button(text_, LEFT_RIGHT_CENTRE, TOP_BOTTOM_CENTRE) {}
+	: UI::Button(text_, LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment::TOP_BOTTOM_CENTRE) {}
 };
 
 class InputToggleButton : public UI::Button
@@ -61,7 +61,7 @@ class InputToggleButton : public UI::Button
 	}
 public:
 	InputToggleButton()
-	: UI::Button("Mouse", LEFT_RIGHT_CENTRE, TOP_BOTTOM_CENTRE) {
+	: UI::Button("Mouse", LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment::TOP_BOTTOM_CENTRE) {
 		useMouse = true;
 		set_canvas_input_device(true);
 	}
@@ -150,7 +150,7 @@ int main(int argc, char ** argv)
 	MyButton button2 = MyButton("or me");
 	MyButton button3 = MyButton("or maybe this very long button right here");
 	MyButton button4 = MyButton("exclamation marks are broken > ! <");
-	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &inp, &button1, &button2, &button3, &button4 }, 1, 0, 0, 0, 0xff202020, UI::Container::FLOW_ACROSS);
+	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &inp, &button1, &button2, &button3, &button4 }, 1, 0, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_ACCROSS);
 
 	// UI::Label lbl = UI::Label("hiya");
 	MyButton b1 = MyButton("1");
@@ -159,7 +159,7 @@ int main(int argc, char ** argv)
 	UI::Menu menu = UI::Menu(vector<UI::Widget *> { &b1, &b2, &b3 });
 
 	UI::MenuItem button12345 = UI::MenuItem("12345", &menu);
-	UI::MenuBar container2 = UI::MenuBar(vector<UI::Widget *> { &button12345 }, 1, 2, 0, 0, 0xff404040, UI::Container::FLOW_ACROSS);
+	UI::MenuBar container2 = UI::MenuBar(vector<UI::Widget *> { &button12345 }, 1, 2, 0, 0, 0xff404040, UI::Container::LayoutManager::FLOW_ACCROSS);
 
 	Canvas canvas = Canvas(1, 1, 0, 0);
 
@@ -167,7 +167,7 @@ int main(int argc, char ** argv)
 
 	Layer * layer = get_first_layer();
 	while(1) {
-		if(layer->type == Layer::LAYER) {
+		if(layer->type == Layer::Type::LAYER) {
 			layerLabels.insert(layerLabels.begin(), new LayerButton(layer));
 		}
 
@@ -179,13 +179,13 @@ int main(int argc, char ** argv)
 		}
 	}
 
-	layerLabels.insert(layerLabels.begin(), new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::NONE));
-	layerLabels.push_back(new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::NONE));
-	UI::Container layersContainer = UI::Container(layerLabels, 0, 1, 100, 0, 0xff202020, UI::Container::FLOW_DOWN);
+	layerLabels.insert(layerLabels.begin(), new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::LayoutManager::NONE));
+	layerLabels.push_back(new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::LayoutManager::NONE));
+	UI::Container layersContainer = UI::Container(layerLabels, 0, 1, 100, 0, 0xff202020, UI::Container::LayoutManager::FLOW_DOWN);
 
 
 
-	UI::Container root = UI::Container(vector<UI::Widget *> { &container,&canvas,&container2,&layersContainer }, 0, 0, 640, 480, 0, UI::Container::BORDER);
+	UI::Container root = UI::Container(vector<UI::Widget *> { &container,&canvas,&container2,&layersContainer }, 0, 0, 640, 480, 0, UI::Container::LayoutManager::BORDER);
 	set_root_container(&root);
 
 

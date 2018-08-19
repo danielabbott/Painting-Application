@@ -73,13 +73,13 @@ void FrameBuffer::create(ImageFormat type_, unsigned int width_, unsigned int he
 	glGenTextures(1, &backingTextureId);
 	glBindTexture(GL_TEXTURE_2D, backingTextureId);
 
-	if(type == FMT_RGBA) {
+	if(type == ImageFormat::FMT_RGBA) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	}
-	else if (type == FMT_RG) {
+	else if (type == ImageFormat::FMT_RG) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, nullptr);
 	}
-	else if (type == FMT_R) {
+	else if (type == ImageFormat::FMT_R) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
 	}
 	else {
@@ -120,13 +120,13 @@ void FrameBuffer::bindTexture()
 
 void FrameBuffer::getTexureData(void * outputBuffer)
 {
-	if(type == FMT_RGBA) {
+	if(type == ImageFormat::FMT_RGBA) {
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, GL_UNSIGNED_BYTE, outputBuffer);
 	}
-	else if (type == FMT_RG) {
+	else if (type == ImageFormat::FMT_RG) {
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_UNSIGNED_BYTE, outputBuffer);
 	}
-	else if (type == FMT_R) {
+	else if (type == ImageFormat::FMT_R) {
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE, outputBuffer);
 	}
 }
@@ -134,28 +134,28 @@ void FrameBuffer::getTexureData(void * outputBuffer)
 void FrameBuffer::clear()
 {
 	if(GLAD_GL_ARB_clear_texture) {
-		if(type == FMT_RGBA) {
+		if(type == ImageFormat::FMT_RGBA) {
 			uint32_t colour = 0x00ffffff;
 			glClearTexImage(backingTextureId, 0, GL_SRGB8_ALPHA8, GL_UNSIGNED_BYTE, &colour);
 		}
-		else if (type == FMT_RG) {
+		else if (type == ImageFormat::FMT_RG) {
 			uint16_t colour = 0x00ff;
 			glClearTexImage(backingTextureId, 0, GL_RG, GL_UNSIGNED_BYTE, &colour);
 		}
-		else if (type == FMT_R) {
+		else if (type == ImageFormat::FMT_R) {
 			uint8_t colour = 0;
 			glClearTexImage(backingTextureId, 0, GL_RED, GL_UNSIGNED_BYTE, &colour);
 		}
 	}
 	else {
 		bindFrameBuffer();
-		if(type == FMT_RGBA) {
+		if(type == ImageFormat::FMT_RGBA) {
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		}
-		else if (type == FMT_RG) {
+		else if (type == ImageFormat::FMT_RG) {
 			glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
 		}
-		else if (type == FMT_R) {
+		else if (type == ImageFormat::FMT_R) {
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		}
 		glClear(GL_COLOR_BUFFER_BIT);

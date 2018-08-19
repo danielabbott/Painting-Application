@@ -44,19 +44,19 @@ void Canvas::draw() {
 			canvasResources.uniformData.baseColour[2] = canvasResources.uniformData.baseColour[3] = 1;
 
 			while(1) {
-				if(layer->type == Layer::LAYER) {
+				if(layer->type == Layer::Type::LAYER) {
 					const ImageBlock::LayerData * layerData = nullptr;
-					if(layer->imageFormat == FMT_RGBA) {
+					if(layer->imageFormat == ImageFormat::FMT_RGBA) {
 						layerData = &block.layersRGBA[rgbaIndex++];
 					}
-					else if(layer->imageFormat == FMT_RG) {
+					else if(layer->imageFormat == ImageFormat::FMT_RG) {
 						layerData = &block.layersRG[rgIndex++];
 					}
 					else {
 						layerData = &block.layersR[rIndex++];
 					}
 
-					if(layerData->dataType == ImageBlock::LayerData::SOLID_COLOUR) {
+					if(layerData->dataType == ImageBlock::LayerData::DataType::SOLID_COLOUR) {
 						if((layerData->colour >> 24) == 0xff) {
 							ops.clear();
 							canvasResources.uniformData.baseColour[0] = (layerData->colour & 0xff) / 255.0f;
@@ -77,7 +77,7 @@ void Canvas::draw() {
 					}
 					else {
 						Op op;
-						op.opType = 2 + layer->imageFormat;
+						op.opType = 2 + (int)layer->imageFormat;
 						op.colour[0] = layer->imageFormatSpecificIndex + 0.1f;
 						ops.push_back(op);
 					}
@@ -87,12 +87,12 @@ void Canvas::draw() {
 						Op op;
 						op.opType = 4;
 
-						if(canvasResources.activeLayer->imageFormat == FMT_RGBA) {
+						if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
 							op.colour[0] = canvasResources.activeColour[0];
 							op.colour[1] = canvasResources.activeColour[1];
 							op.colour[2] = canvasResources.activeColour[2];
 						}
-						else if(canvasResources.activeLayer->imageFormat == FMT_RG) {
+						else if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_RG) {
 							op.colour[0] = canvasResources.activeColour[0];
 							op.colour[1] = canvasResources.activeColour[0];
 							op.colour[2] = canvasResources.activeColour[0];
@@ -110,7 +110,7 @@ void Canvas::draw() {
 
 
 				if(layer->firstChild) {
-					assert(layer->type == Layer::LAYER);
+					assert(layer->type == Layer::Type::LAYER);
 					layer = layer->firstChild;
 				}
 				else {

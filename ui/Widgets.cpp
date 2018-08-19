@@ -36,7 +36,7 @@ bool Container::onClicked_(unsigned int button, unsigned int x, unsigned int y, 
 		return false;
 	}
 
-	outcome = CONTAINER_INTERACTED_WITH;
+	outcome = EventHandlerOutcome::CONTAINER_INTERACTED_WITH;
 	onClicked(button, x, y);
 
 	for(Container * container : childContainers) {
@@ -53,7 +53,7 @@ bool Container::onClicked_(unsigned int button, unsigned int x, unsigned int y, 
 			
 		if(x_in_region(x, y, widget->actualX, widget->actualY, widget->actualWidth, widget->actualHeight)) {
 			widgetBeingClicked[button] = widget;
-			outcome = WIDGET_INTERACTED_WITH;
+			outcome = EventHandlerOutcome::WIDGET_INTERACTED_WITH;
 
 			if(widget->onClicked(button, x-widget->actualX, y-widget->actualY)) {
 				return true;
@@ -75,7 +75,7 @@ bool Container::onMouseMoved_(unsigned int x, unsigned int y, float pressure, Ev
 		return false;
 	}
 
-	outcome = CONTAINER_INTERACTED_WITH;
+	outcome = EventHandlerOutcome::CONTAINER_INTERACTED_WITH;
 	onMouseMoved(x, y, pressure);
 
 	for(Container * container : childContainers) {
@@ -91,7 +91,7 @@ bool Container::onMouseMoved_(unsigned int x, unsigned int y, float pressure, Ev
 		if(dynamic_cast<Container *>(widget))	continue;
 
 		if(x_in_region(x, y, widget->actualX, widget->actualY, widget->actualWidth, widget->actualHeight)) {
-			outcome = WIDGET_INTERACTED_WITH;
+			outcome = EventHandlerOutcome::WIDGET_INTERACTED_WITH;
 
 			if(widget->onMouseMoved(x-widget->actualX, y-widget->actualY, pressure)) {
 				return true;
@@ -113,7 +113,7 @@ bool Container::onScroll_(unsigned int x, unsigned int y, int scrollY, EventHand
 		return false;
 	}
 	
-	outcome = CONTAINER_INTERACTED_WITH;
+	outcome = EventHandlerOutcome::CONTAINER_INTERACTED_WITH;
 	onMouseMoved(x, y, scrollY);
 
 	for(Container * container : childContainers) {
@@ -129,7 +129,7 @@ bool Container::onScroll_(unsigned int x, unsigned int y, int scrollY, EventHand
 		if(dynamic_cast<Container *>(widget))	continue;
 
 		if(x_in_region(x, y, widget->actualX, widget->actualY, widget->actualWidth, widget->actualHeight)) {
-			outcome = WIDGET_INTERACTED_WITH;
+			outcome = EventHandlerOutcome::WIDGET_INTERACTED_WITH;
 
 			if(widget->onScroll(x-widget->actualX, y-widget->actualY, scrollY)) {
 				return true;
