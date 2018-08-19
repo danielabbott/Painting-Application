@@ -15,7 +15,6 @@
 
 using namespace std;
 
-void testfunc_clear_layer2();
 
 class MyButton : public UI::Button
 {
@@ -23,7 +22,7 @@ class MyButton : public UI::Button
 	{ 
 		UI::Button::onMouseButtonReleased(button);
 		if(!button) {
-			testfunc_clear_layer2();
+			clear_layer(get_first_layer()->next);
 		}
 		return true; 
 	}

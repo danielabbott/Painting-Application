@@ -35,3 +35,5 @@ Layer * get_first_layer();
 
 // false for tablet
 void set_canvas_input_device(bool mouse);
+
+void clear_layer(Layer * layer);

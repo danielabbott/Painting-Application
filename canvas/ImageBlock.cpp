@@ -9,8 +9,6 @@
 
 using namespace std;
 
-extern int firstLayer;
-
 
 unsigned int image_block_size() { return 1024; }
 
@@ -20,16 +18,19 @@ void ImageBlock::create()
 	assert(!layersRG.size());
 	assert(!layersR.size());
 
-	if(firstLayer == -1) {
-		// No layers, use default state
-		return;
-	}
+	
 
 	unsigned int numRGBA = 0;
 	unsigned int numRG = 0;
 	unsigned int numR = 0;
 
 	Layer * layer = get_first_layer();
+
+	if(!layer) {
+		// No layers, use default state
+		return;
+	}
+
 	while(1) {
 		if(layer->type == Layer::LAYER) {
 			if(layer->imageFormat == FMT_RGBA) {
