@@ -316,6 +316,7 @@ static inline void create_opengl_buffers()
 	if(!vboId) throw runtime_error("Error creating canvas vertex buffer");
 	glBindBuffer(GL_ARRAY_BUFFER, vboId);
 
+	// In window/canvas coordinates, hence the units are pixels
 	const float vertices[12] = {
 		0,0,
 		1,0,
@@ -327,7 +328,7 @@ static inline void create_opengl_buffers()
 	};
 
 	const float texCoords[12] = {
-		0,1,
+		0,1, // 0,0 vertex coordinates => texture coordinates 0,1
 		1,1,
 		1,0,
 
@@ -643,8 +644,8 @@ void Canvas::draw() {
 	glm::mat4 m = 
 		glm::ortho(0.0f, (float)windowWidth, (float)windowHeight, 0.0f)
 		* glm::translate(glm::mat4(1.0f), glm::vec3(
-			(float)(uiCanvasX + canvasX),
-			(float)(uiCanvasY + canvasY),
+			(float)((int)uiCanvasX + canvasX),
+			(float)((int)uiCanvasY + canvasY),
 		0.0f))
 		* glm::scale(glm::mat4(1.0f), glm::vec3((float)canvasWidth * canvasZoom, (float)canvasHeight * canvasZoom, 1.0))
 		* glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, -0.5f, 0.0f))
@@ -663,7 +664,7 @@ void Canvas::draw() {
 static int prevCanvasCoordX;
 static int prevCanvasCoordY;
 
-void Canvas::cursorCoordsToCanvasCoords(unsigned int cursorX, unsigned int cursorY, int & x, int & y)
+void Canvas::widgetCoordsToCanvasCoords(unsigned int cursorX, unsigned int cursorY, int & x, int & y)
 {
 	unsigned int uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight;
 	getArea(uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight);
@@ -671,8 +672,8 @@ void Canvas::cursorCoordsToCanvasCoords(unsigned int cursorX, unsigned int curso
 	float canvasOnscreenWidth = canvasWidth * canvasZoom;
 	float canvasOnscreenHeight = canvasHeight * canvasZoom;
 
-	x = ((((int)cursorX - (int)canvasX) / canvasOnscreenWidth) + 0.5f) * (int)canvasWidth;
-	y = ((((int)cursorY - (int)canvasY) / canvasOnscreenHeight) + 0.5f) * (int)canvasHeight;
+	x = ((((int)cursorX - canvasX) / canvasOnscreenWidth) + 0.5f) * (int)canvasWidth;
+	y = ((((int)cursorY - canvasY) / canvasOnscreenHeight) + 0.5f) * (int)canvasHeight;
 }
 
 static bool panning = false;
@@ -760,7 +761,7 @@ bool Canvas::onClicked(unsigned int button, unsigned int x, unsigned int y)
 		clog << "Pen pressed" << endl;
 		penDown = true;
 
-		cursorCoordsToCanvasCoords(x, y, prevCanvasCoordX, prevCanvasCoordY);
+		widgetCoordsToCanvasCoords(x, y, prevCanvasCoordX, prevCanvasCoordY);
 	}
 	else if (button == 2) {
 		// Scroll wheel
@@ -845,7 +846,7 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 
 	int canvasXcoord;
 	int canvasYcoord;
-	cursorCoordsToCanvasCoords(cursorX, cursorY, canvasXcoord, canvasYcoord);
+	widgetCoordsToCanvasCoords(cursorX, cursorY, canvasXcoord, canvasYcoord);
 
 
 	int diffX = canvasXcoord - prevCanvasCoordX;
@@ -872,10 +873,11 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 }
 
 bool Canvas::onScroll(unsigned int x, unsigned int y, int direction)
-{
-	(void)x;
-	(void)y;
-	
+{	
+	// Get canvas coordinates of mouse 
+	int targetCanvasX, targetCanvasY;
+	widgetCoordsToCanvasCoords(x, y, targetCanvasX, targetCanvasY);
+
 	if(direction > 0) {
 		canvasZoom *= direction*2;
 	}
@@ -892,6 +894,18 @@ bool Canvas::onScroll(unsigned int x, unsigned int y, int direction)
 	if(canvasZoom > 30) {
 		canvasZoom = 30;
 	}
+
+	// Position the canvas so that the point the mouse was over before zooming
+	// is still under the mouse after zooming
+
+	unsigned int uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight;
+	getArea(uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight);
+
+	float distanceX = (targetCanvasX - (int)canvasWidth/2) * canvasZoom;
+	float distanceY = (targetCanvasY - (int)canvasHeight/2) * canvasZoom;
+
+	canvasX = (int)x - distanceX;
+	canvasY = (int)y - distanceY;
 
 	return true;
 }

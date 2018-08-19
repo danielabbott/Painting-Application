@@ -12,7 +12,7 @@ GLuint get_brush_vao();
 
 class Canvas : public UI::Canvas
 {
-	void cursorCoordsToCanvasCoords(unsigned int cursorX, unsigned int cursorY, int & x, int & y);
+	void widgetCoordsToCanvasCoords(unsigned int cursorX, unsigned int cursorY, int & x, int & y);
 
 public:
 	Canvas(unsigned int width, unsigned int height)
