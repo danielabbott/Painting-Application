@@ -62,7 +62,6 @@ class InputToggleButton : public UI::Button
 public:
 	InputToggleButton()
 	: UI::Button("Mouse", LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment::TOP_BOTTOM_CENTRE) {
-		useMouse = true;
 		set_canvas_input_device(true);
 	}
 };
@@ -185,9 +184,8 @@ int main(int argc, char ** argv)
 
 
 
-	UI::Container root = UI::Container(vector<UI::Widget *> { &container,&canvas,&container2,&layersContainer }, 0, 0, 640, 480, 0, UI::Container::LayoutManager::BORDER);
+	UI::Container root = UI::Container(vector<UI::Widget *> { &container,&canvas,&container2,&layersContainer }, 0, 0, 0, 0, 0, UI::Container::LayoutManager::BORDER);
 	set_root_container(&root);
-
 
 	unsigned int x, y, canvasWidth, canvasHeight;
 	canvas.getArea(x, y, canvasWidth, canvasHeight);

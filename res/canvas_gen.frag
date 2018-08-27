@@ -40,6 +40,9 @@ out vec4 outColour;
 void main()
 {
 	outColour = vec4(baseColour.rgb, 1.0);
+
+	float strokeOpacity = 0.0;
+
 	for(int opIndex = 0;; opIndex++) {
 		bool stop = false;
 
@@ -71,7 +74,7 @@ void main()
 
 			case 4:
 			{ // Apply stroke (uses strokeImage)
-				float strokeOpacity = texture(strokeImage, pass_canvas_coordinates).r;
+				strokeOpacity = texture(strokeImage, pass_canvas_coordinates).r;
 				outColour.rgb = mix(outColour.rgb, ops[opIndex].colour.rgb, strokeOpacity);
 				break;
 			}
@@ -90,14 +93,31 @@ void main()
 				outColour.rgb =vec3(grey);
 				break;
 			}
+
+			case 7:
+			{ // Apply stroke conditional (fetches value for op 8)
+				strokeOpacity = texture(strokeImage, pass_canvas_coordinates).r;
+				if(strokeOpacity == 0.0) {
+					discard;
+				}
+				break;
+			}
+
+			case 8:
+			{ // Apply stroke conditional (depends on value from op 7)
+				outColour.rgb = mix(outColour.rgb, ops[opIndex].colour.rgb, strokeOpacity);
+				break;
+			}
+
+			default:
+			{
+				stop = true;
+				break;
+			}
 		}
 
 
-		if(opIndex == 63) {
-			break;
-		}
-
-		if(stop) {
+		if(opIndex == 63 || stop) {
 			break;
 		}
 	}

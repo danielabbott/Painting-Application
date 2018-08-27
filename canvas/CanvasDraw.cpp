@@ -85,7 +85,7 @@ void Canvas::draw() {
 					if(layer == canvasResources.activeLayer && canvasResources.penDown && block.hasStrokeData) {
 						// Stroke must be overlayed
 						Op op;
-						op.opType = 4;
+						op.opType = 8;
 
 						if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
 							op.colour[0] = canvasResources.activeColour[0];
@@ -128,7 +128,15 @@ void Canvas::draw() {
 			Op op = {};
 			ops.push_back(op);
 
-			memcpy(canvasResources.uniformData.ops, ops.data(), (ops.size() > 64 ? 64 : ops.size()) * sizeof(Op));
+			if(canvasResources.penDown && block.hasStrokeData) {
+				canvasResources.uniformData.ops[0].opType = 7;
+
+				memcpy(&canvasResources.uniformData.ops[1], ops.data(), (ops.size() > 63 ? 63 : ops.size()) * sizeof(Op));
+			}
+			else {
+				memcpy(canvasResources.uniformData.ops, ops.data(), (ops.size() > 64 ? 64 : ops.size()) * sizeof(Op));
+			}
+
 
 			canvasResources.uniformData.offsetX = (((block.getX() + block.dirtyMinX) / (float)canvasResources.canvasWidth) * 2.0f) - 1.0f;
 			canvasResources.uniformData.offsetY = (((1.0f - (block.getY() + block.dirtyMinY + block.dirtyHeight) / (float)canvasResources.canvasHeight) * 2.0f) - 1.0f);

@@ -20,6 +20,9 @@ static Container * rootContainer = nullptr;
 static Container * rootContainer2 = nullptr;
 static unsigned int rootContainer2X, rootContainer2Y;
 
+static unsigned int windowWidth = 300;
+static unsigned int windowHeight = 200;
+
 void setAbsWindowCoords(Container * c, unsigned int x=0, unsigned int y=0)
 {
 	x += c->getActualX();
@@ -62,6 +65,13 @@ bool widgetBeingClickedIsInMenuOverlay[3];
 
 void Container::bake() 
 {
+	if(this == rootContainer) {
+		actualWidth = w = windowWidth;
+		actualHeight = h = windowHeight;
+	}
+
+	childContainers.clear();
+
 	for(Widget * widget : widgets) {
 		widget->parent = this;
 		Container * container = dynamic_cast<Container *>(widget);
@@ -76,8 +86,8 @@ void Container::bake()
 		actualHeight = h;
 
 		for(Widget * widget : widgets) {
-			widget->actualX = actualX + widget->x;
-			widget->actualY = actualY + widget->y;
+			widget->actualX = widget->x;
+			widget->actualY = widget->y;
 
 			// Set actual width and height to widget's preferred dimensions
 			widget->getDimensions(widget->actualWidth, widget->actualHeight);
@@ -85,9 +95,6 @@ void Container::bake()
 	}
 	else if(layoutManager == LayoutManager::BORDER) {
 		assert(widgets.size() <= 9);
-
-		actualWidth = w;
-		actualHeight = h;
 
 		// The size of the central area is determined first
 
@@ -315,7 +322,7 @@ void Container::bake()
 	}
 
 	else if(layoutManager == LayoutManager::FLOW_DOWN) {
-		getDimensions(actualWidth, actualHeight);
+		getDimensions(w, h);
 
 		unsigned int widgetY = 0;
 		for(Widget * widget : widgets) {
@@ -327,12 +334,12 @@ void Container::bake()
 			widget->actualHeight += WIDGET_PADDING;
 
 			// All widgets are the same width
-			widget->actualWidth = actualWidth;
+			widget->actualWidth = w;
 		}
 	}
 
 	else if(layoutManager == LayoutManager::FLOW_ACCROSS) {
-		getDimensions(actualWidth, actualHeight);
+		getDimensions(w, h);
 
 		unsigned int widgetX = 0;
 		for(Widget * widget : widgets) {
@@ -344,7 +351,7 @@ void Container::bake()
 			widget->actualWidth += WIDGET_PADDING;
 
 			// All widgets are the same height
-			widget->actualHeight = actualHeight;
+			widget->actualHeight = h;
 		}
 	}
 }
@@ -468,8 +475,6 @@ struct Vertex {
 	{}
 };
 
-static unsigned int windowWidth = 300;
-static unsigned int windowHeight = 200;
 
 static Vertex * vertexData;
 static unsigned int vertexDataNextIndex = 0;
@@ -716,8 +721,6 @@ void Container::draw(vector<Canvas *> & canvases, unsigned int xOffset, unsigned
 
 		string const& text = widget->getText();
 		if(text.size()) {
-			// TODO: Take font alignment into consideration
-
 			unsigned int wWidth, wHeight;
 			widget->getDimensions(wWidth, wHeight);
 
@@ -793,6 +796,11 @@ void Container::findCanvases(std::vector<Canvas *> & canvases)
 bool draw_ui(bool forceRedraw)
 {
 	if(globalDirtyFlag || forceRedraw || windowDimensionsChanged) {
+		if(rootContainer && windowDimensionsChanged) {
+			rootContainer->bake();
+		}
+
+
 		// Create vertex/index data (store data directly to OpenGL-mapped memory)
 
 		bind_default_framebuffer();
@@ -866,7 +874,6 @@ bool draw_ui(bool forceRedraw)
 		if(windowDimensionsChanged) {
 			glm::mat4 matrix = glm::ortho(0.0f, (float)windowWidth, (float)windowHeight, 0.0f);
 			glUniformMatrix4fv(matrixUniformId, 1, GL_FALSE, &matrix[0][0]);
-			windowDimensionsChanged = false;
 		}
 
 		glBindTexture(GL_TEXTURE_2D, asciiAtlas.textureId);
@@ -874,10 +881,11 @@ bool draw_ui(bool forceRedraw)
 
 
 		globalDirtyFlag = false;
+		windowDimensionsChanged = false;
 
 		return true; // UI was redrawn
 	}
-
+	
 	return false; // UI was not redrawn
 }
 
