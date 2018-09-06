@@ -26,17 +26,24 @@ void create_layers()
 
 	layers[0].type = Layer::Type::LAYER;
 	layers[0].name = "bottom layer";
-	layers[1].type = Layer::Type::LAYER;
-	layers[1].name = "top layer";
+	// layers[1].type = Layer::Type::LAYER;
+	// layers[1].name = "top layer";
 
 	canvasResources.firstLayer = &layers[0];
-	canvasResources.activeLayer = &layers[1];
-	layers[0].next = &layers[1];
+	canvasResources.activeLayer = &layers[0];
+	// canvasResources.activeLayer = &layers[1];
+	// layers[0].next = &layers[1];
 
 	canvasResources.activeColour[0] = 1;
 	canvasResources.activeColour[1] = 0;
 	canvasResources.activeColour[2] = 0;
-	canvasResources.activeColour[3] = 0.6f;
+	canvasResources.activeColour[3] = 1;
+
+	for(ImageBlock & block : canvasResources.imageBlocks) {
+		block.dirtyRegion(block.getX(), block.getY(), image_block_size(), image_block_size());
+		block.fillLayer(canvasResources.firstLayer, 0xffa0a0a0);
+	}
+	canvasResources.canvasDirty = true;
 }
 
 Layer * get_first_layer()
@@ -102,7 +109,9 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 
 		glActiveTexture(GL_TEXTURE0);
 		canvasResources.strokeLayer.bindTexture();
+
 		glDisable(GL_BLEND);
+
 		glBindVertexArray(canvasResources.vaoId);
 
 		glActiveTexture(GL_TEXTURE1);
@@ -167,8 +176,10 @@ bool Canvas::onClicked(unsigned int button, unsigned int x, unsigned int y)
 	return false;
 }
 
-void drawStroke(int canvasXcoord, int canvasYcoord, float pressure, unsigned int size)
+void drawStroke(int canvasXcoord, int canvasYcoord, float pressure, unsigned int size, float alphaMultiply)
 {
+	// TODO: If brush is not textured and covers entire image block then set strokeDataFillsBlock to true and don't fill
+
 	glm::mat4 m = 
 		glm::ortho(0.0f, (float)canvasResources.canvasWidth, (float)canvasResources.canvasHeight, 0.0f)
 		* glm::translate(glm::mat4(1.0f), glm::vec3((float)canvasXcoord, (float)canvasYcoord, 0.0f))
@@ -176,7 +187,11 @@ void drawStroke(int canvasXcoord, int canvasYcoord, float pressure, unsigned int
 	;
 
 	glUniformMatrix4fv(testBrush.matrixUniformLocation, 1, GL_FALSE, &m[0][0]);
-	glUniform1f(testBrush.strokeAlphaUniformLocation, pressure*canvasResources.activeColour[3]);
+	glUniform1f(testBrush.strokeAlphaUniformLocation, pressure*canvasResources.activeColour[3] * alphaMultiply);
+
+	if(testBrush.seedUniformLocation != -1) {
+		glUniform1f(testBrush.seedUniformLocation, (rand() % 200) * 1.2f);
+	}
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -233,15 +248,20 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 
 	// if a stroke overlaps itself it will never make itself lighter
 	glBlendFunc(GL_ONE, GL_ONE);
-	glBlendEquation(GL_MAX);
+
+	if(testBrush.blendMode == Brush::BlendMode::MAX) {
+		glBlendEquation(GL_MAX);
+	}
 
 	canvasResources.strokeLayer.bindFrameBuffer();
 	glBindVertexArray(canvasResources.brushVaoId);
 
+	//Reduce opacity when using add blend mode
+	float alphaMultiply = testBrush.blendMode == Brush::BlendMode::ADD ? 0.2f : 1.0f;
+
 	int canvasXcoord;
 	int canvasYcoord;
 	widgetCoordsToCanvasCoords(cursorX, cursorY, canvasXcoord, canvasYcoord);
-
 
 	int diffX = canvasXcoord - canvasResources.prevCanvasCoordX;
 	int diffY = canvasYcoord - canvasResources.prevCanvasCoordY;
@@ -250,16 +270,17 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 	float increment = size / 8 / distance;
 
 	for(float mul = increment; mul < 1.0f; mul += increment) {
-		drawStroke(canvasResources.prevCanvasCoordX + (int)(diffX * mul), canvasResources.prevCanvasCoordY + (int)(diffY * mul), pressure, size);
+		drawStroke(canvasResources.prevCanvasCoordX + (int)(diffX * mul), canvasResources.prevCanvasCoordY + (int)(diffY * mul), pressure, size, alphaMultiply);
 	}
 
-	drawStroke(canvasXcoord, canvasYcoord, pressure, size);
+	drawStroke(canvasXcoord, canvasYcoord, pressure, size, alphaMultiply);
 
 	canvasResources.prevCanvasCoordX = canvasXcoord;
 	canvasResources.prevCanvasCoordY = canvasYcoord;
 
-
-	glBlendEquation(GL_FUNC_ADD);
+	if(testBrush.blendMode != Brush::BlendMode::ADD) {
+		glBlendEquation(GL_FUNC_ADD);
+	}
 
 	canvasResources.canvasDirty = true;
 	return true;
@@ -311,4 +332,22 @@ void clear_layer(Layer * layer)
 		block.fillLayer(layer, 0);
 	}
 	canvasResources.canvasDirty = true;
+}
+
+
+void fill_layer(Layer * layer, uint32_t colour)
+{
+	for(ImageBlock & block : canvasResources.imageBlocks) {
+		block.dirtyRegion(block.getX(), block.getY(), image_block_size(), image_block_size());
+		block.fillLayer(layer, colour);
+	}
+	canvasResources.canvasDirty = true;
+}
+
+void set_active_colour(float r, float g, float b, float a)
+{
+	canvasResources.activeColour[0] = r;
+	canvasResources.activeColour[1] = g;
+	canvasResources.activeColour[2] = b;
+	canvasResources.activeColour[3] = a;
 }

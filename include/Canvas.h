@@ -37,3 +37,5 @@ Layer * get_first_layer();
 void set_canvas_input_device(bool mouse);
 
 void clear_layer(Layer * layer);
+void fill_layer(Layer * layer, uint32_t colour);
+void set_active_colour(float r, float g, float b, float a);

@@ -21,4 +21,11 @@ clean:
 	-rm ui/*.o
 	-rm canvas/*.o
 
+cleancanvas:
+	-rm canvas/*.o
 
+cleanui:
+	-rm ui/*.o
+
+cleanroot:
+	-rm *.o

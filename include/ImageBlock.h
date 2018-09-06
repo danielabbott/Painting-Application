@@ -25,6 +25,8 @@ public:
 	// Used for keeping track of which image blocks have been drawn on during the current stroke
 	bool hasStrokeData = false;
 
+	bool strokeDataFillsBlock = false;
+
 	// Information about this image block on one particular layer
 	struct LayerData {
 		unsigned int layer; // Index into global layers std::vector

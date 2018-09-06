@@ -1,6 +1,5 @@
 #version 140
 
-// Pressure * activeColour.a
 uniform float strokeAlpha = 1.0;
 
 in vec2 pass_coordinates;

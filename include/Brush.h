@@ -13,17 +13,17 @@ struct Brush {
 
 	float opacity = 1;
 
-	enum class BrushType {
-		SQUARE, // Can also be a rectangle (see float height)
-		CIRCLE, // Can also be a oval (see float height)
-		// TEXTURED,
+	enum class BlendMode {
+		MAX, // Used for simple brushes
+		ADD // Used for noise brush
 	};
 
-	BrushType brushType = BrushType::SQUARE;
+	BlendMode blendMode = BlendMode::MAX;
 
 	GLuint shaderProgram;
 	GLint matrixUniformLocation;
 	GLint strokeAlphaUniformLocation;
+	GLint seedUniformLocation;
 
 	// GLuint texture;
 

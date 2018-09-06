@@ -22,7 +22,8 @@ class MyButton : public UI::Button
 	{ 
 		UI::Button::onMouseButtonReleased(button);
 		if(!button) {
-			clear_layer(get_first_layer()->next);
+			// clear_layer(get_first_layer()->next);
+			fill_layer(get_first_layer(), 0xffffffff);
 		}
 		return true; 
 	}
@@ -92,6 +93,29 @@ public:
 	LayerButton(Layer * layer_) : UI::Label(layer_->name), layer(layer_) {}
 };
 
+class ColourSetter : public UI::Button
+{
+	float colour[3];
+
+	virtual bool onMouseButtonReleased(unsigned int button) override
+	{ 
+		cout<<button<<endl;
+		UI::Button::onMouseButtonReleased(button);
+		if(!button) {
+			set_active_colour(colour[0], colour[1], colour[2], 1);
+		}
+		return true; 
+	}
+
+public:
+	ColourSetter(string t_, float r, float g, float b) : UI::Button(t_) 
+	{
+		colour[0] = r;
+		colour[1] = g;
+		colour[2] = b;
+	}
+};
+
 int main(int argc, char ** argv)
 {
 
@@ -158,7 +182,10 @@ int main(int argc, char ** argv)
 	UI::Menu menu = UI::Menu(vector<UI::Widget *> { &b1, &b2, &b3 });
 
 	UI::MenuItem button12345 = UI::MenuItem("12345", &menu);
-	UI::MenuBar container2 = UI::MenuBar(vector<UI::Widget *> { &button12345 }, 1, 2, 0, 0, 0xff404040, UI::Container::LayoutManager::FLOW_ACCROSS);
+	ColourSetter red("Red", 1, 0, 0);
+	ColourSetter green("Green", 0, 1, 0);
+	ColourSetter blue("Blue", 0, 0, 1);
+	UI::MenuBar container2 = UI::MenuBar(vector<UI::Widget *> { &button12345,&red,&green,&blue }, 1, 2, 0, 0, 0xff404040, UI::Container::LayoutManager::FLOW_ACCROSS);
 
 	Canvas canvas = Canvas(1, 1, 0, 0);
 

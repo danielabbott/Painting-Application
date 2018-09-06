@@ -56,7 +56,6 @@ void main()
 
 void main()
 {
-	// Stroke alpha is premultiplied in the stroke texture
 	float strokeOpacity = texture(strokeImage, pass_stroke_layer_uv_coords).r;
 	DST_TYPE dst = texture(imageBlock, vec3(image_block_uv_coords, textureArrayIndex)).IMAGE_BLOCK_TEXTURE_COMPONENTS;
 
@@ -69,7 +68,8 @@ void main()
 		colour = (STROKE_COLOUR * strokeOpacity + DST_COLOUR*DST_ALPHA*(1.0 - strokeOpacity)) / alpha; 
 	}
 
-	out_colour = DST_TYPE(colour, alpha);
+	// out_colour = DST_TYPE(colour, alpha);
+	out_colour = DST_TYPE(colour, 1.0);
 }
 
 #endif

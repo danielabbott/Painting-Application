@@ -18,13 +18,17 @@ void Brush::create(const char * fragmentShaderFile)
 	glAttachShader(shaderProgram, fsId);
 	link_shader_program(shaderProgram);
 	glDeleteShader(fsId);
+
 	matrixUniformLocation = glGetUniformLocation(shaderProgram, "matrix");
 	if(matrixUniformLocation == -1) throw runtime_error("res/brush.vert does not define uniform mat4 matrix");
+
 	strokeAlphaUniformLocation = glGetUniformLocation(shaderProgram, "strokeAlpha");
 	if(strokeAlphaUniformLocation == -1) {
 		cerr << "Error compiling " << fragmentShaderFile << endl;
 	 	throw runtime_error("Brush fragment shader does not define uniform float strokeAlpha");
 	}
+
+	seedUniformLocation = glGetUniformLocation(shaderProgram, "seed");
 
 	GLint uniLoc = glGetUniformLocation(shaderProgram, "brushTexture");
 	if(uniLoc != -1) {

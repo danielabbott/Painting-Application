@@ -90,7 +90,7 @@ void main()
 			case 6:
 			{ // Greyscale filter (full effect)
 				float grey = (outColour.rgb.r + outColour.rgb.g + outColour.rgb.b) / 3.0;
-				outColour.rgb =vec3(grey);
+				outColour.rgb = vec3(grey);
 				break;
 			}
 

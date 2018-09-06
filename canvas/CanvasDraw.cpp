@@ -87,20 +87,15 @@ void Canvas::draw() {
 						Op op;
 						op.opType = 8;
 
-						if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
-							op.colour[0] = canvasResources.activeColour[0];
-							op.colour[1] = canvasResources.activeColour[1];
-							op.colour[2] = canvasResources.activeColour[2];
-						}
-						else if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_RG) {
-							op.colour[0] = canvasResources.activeColour[0];
-							op.colour[1] = canvasResources.activeColour[0];
-							op.colour[2] = canvasResources.activeColour[0];
-						}
-						else {
+						if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_R) {
 							op.colour[0] = 1;
 							op.colour[1] = 1;
 							op.colour[2] = 1;
+						}
+						else {
+							op.colour[0] = canvasResources.activeColour[0];
+							op.colour[1] = canvasResources.activeColour[1];
+							op.colour[2] = canvasResources.activeColour[2];
 						}
 						op.colour[3] = canvasResources.activeColour[3];
 

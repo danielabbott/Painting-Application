@@ -275,6 +275,9 @@ void initialise_canvas_display(unsigned int x, unsigned int y)
 
 	create_canvas_generation_shader_program();
 
+	// testBrush.blendMode = Brush::BlendMode::ADD;
+	// testBrush.create("res/brush_noise.frag");
+	
 	testBrush.create("res/brush_circle.frag");
 
 	create_simple_texture_shader_program();	
