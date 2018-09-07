@@ -1,6 +1,6 @@
 CXX=g++
 CC=gcc
-SOURCES=Files.cpp Main.cpp png.cpp Shader.cpp Timer.cpp Window.cpp hwcaps.cpp canvas/ArrayTexture.cpp canvas/Brush.cpp canvas/Canvas.cpp \
+SOURCES=Files.cpp Main.cpp png.cpp webp.cpp Shader.cpp Timer.cpp Window.cpp hwcaps.cpp canvas/ArrayTexture.cpp canvas/Brush.cpp canvas/Canvas.cpp \
 canvas/Framebuffer.cpp canvas/ImageBlock.cpp canvas/CanvasSetup.cpp canvas/CanvasDraw.cpp ui/Font.cpp ui/UI.cpp ui/Widgets.cpp ui/Button.cpp \
 ui/Menu.cpp ui/Label.cpp
 OBJECTS=$(SOURCES:.cpp=.o)

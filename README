@@ -24,6 +24,9 @@ GLM (tested with 0.9.9.0)
 xinput (linux only, install libxi-devel when compiling on Solus)
 pkg-config (only used when compiling)
 
+Optional:
+	webp
+
 == Compiling ==
 
 For Linux:

@@ -68,8 +68,7 @@ void main()
 		colour = (STROKE_COLOUR * strokeOpacity + DST_COLOUR*DST_ALPHA*(1.0 - strokeOpacity)) / alpha; 
 	}
 
-	// out_colour = DST_TYPE(colour, alpha);
-	out_colour = DST_TYPE(colour, 1.0);
+	out_colour = DST_TYPE(colour, alpha);
 }
 
 #endif

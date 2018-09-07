@@ -3,6 +3,7 @@
 // Creates a GLFW window, finds a graphics tablet, and assigns input handlers (see Input.cpp) for the input devices
 void create_window(unsigned int width, unsigned int height, unsigned int glVersion = 0, unsigned int forceBitDepth = 0);
 
+void set_window_icon(unsigned char * data, unsigned int width, unsigned int height);
 
 void find_tablets();
 bool window_should_close();

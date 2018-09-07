@@ -14,3 +14,6 @@ enum class ImageFormat {
 // wasPNG will only be set to false when an exception will be raised
 // The caller is responsible for closing the file handle
 std::vector<unsigned char> load_png(FILE * file, unsigned int & width, unsigned int & height, bool & wasPNG);
+
+
+std::vector<unsigned char> load_webp(FILE * file, unsigned int & width, unsigned int & height, bool & wasWebp);

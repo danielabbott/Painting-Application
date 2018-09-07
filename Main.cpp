@@ -12,6 +12,7 @@
 #include <Canvas.h>
 #include <Timer.h>
 #include <iomanip>
+#include <cstring>
 
 using namespace std;
 
@@ -116,9 +117,10 @@ public:
 	}
 };
 
+extern string webpLibraryFile;
+
 int main(int argc, char ** argv)
 {
-
 	unsigned int glVer = 0;
 	unsigned int forceBitDepth = 0;
 
@@ -149,6 +151,24 @@ int main(int argc, char ** argv)
 			if(forceBitDepth) {
 				clog << "Using bit depth: " << forceBitDepth << endl;
 			}
+		}
+		else if (argv[i][0] == '-' && argv[i][1] == '-'
+			&& strncmp(&argv[i][2], "webp-library-file=", 18) == 0)
+		{
+			unsigned int l = 0;
+			unsigned int j = 2+18;
+
+			while(argv[i][j] && argv[i][j] != ' ') {
+				j++;
+				l++;
+			}
+
+			webpLibraryFile = string(&argv[i][2+18], l);
+
+			clog << "Webp encoder/decoder implementation search path set to " << webpLibraryFile << endl;
+		}
+		else {
+			cout<<&argv[i][2]<<endl;
 		}
 	}
 

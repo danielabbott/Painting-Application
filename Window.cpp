@@ -171,8 +171,20 @@ void create_window(unsigned int width, unsigned int height, unsigned int glVer, 
 	assert(xwindow);
 	#else
 	win32Window = glfwGetWin32Window(window);
-	#endif
-    
+	#endif    
+}
+
+void set_window_icon(unsigned char * data, unsigned int width, unsigned int height)
+{
+	assert(data);
+	assert(width <= 32768);
+	assert(height <= 32768);
+	
+	GLFWimage image;
+	image.width = (int)width;
+	image.height = (int)height;
+	image.pixels = data;
+	glfwSetWindowIcon(window, 1, &image);
 }
 
 static window_resize_callback resizeCallback;
