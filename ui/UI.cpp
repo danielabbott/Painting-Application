@@ -55,7 +55,7 @@ void set_menu_overlay_root_container(Container * c, unsigned int x, unsigned int
 	rootContainer2Y = y;
 	rootContainer2 = c;
 	rootContainer2->bake(); 
-	setAbsWindowCoords(rootContainer2); 
+	setAbsWindowCoords(rootContainer2, x, y); 
 }
 
 // Each index corresponds to a mouse button
@@ -511,7 +511,7 @@ void mouse_clicked(unsigned int button, unsigned int x, unsigned int y, bool but
 		Container::EventHandlerOutcome outcome = Container::EventHandlerOutcome::NOTHING;
 
 		if(rootContainer2 && rootContainer2->onClicked_(button, x-rootContainer2X-rootContainer2->getActualX(), y-rootContainer2Y-rootContainer2->getActualY(), outcome)) {
-			globalDirtyFlag = true;
+			globalDirtyFlag = true;cout<<"click"<<endl;
 		}
 
 		if(outcome == Container::EventHandlerOutcome::NOTHING) {
@@ -535,7 +535,6 @@ void mouse_clicked(unsigned int button, unsigned int x, unsigned int y, bool but
 				y -= rootContainer2Y;
 			}
 			if(x_in_region(x, y, widgetBeingClicked[button]->getActualWindowX(), widgetBeingClicked[button]->getActualWindowY(), widgetBeingClicked[button]->getActualWidth(), widgetBeingClicked[button]->getActualHeight())) {
-				
 				if(widgetBeingClicked[button]->onMouseButtonReleased(button)) {
 					globalDirtyFlag = true;
 				}
@@ -796,8 +795,15 @@ void Container::findCanvases(std::vector<Canvas *> & canvases)
 bool draw_ui(bool forceRedraw)
 {
 	if(globalDirtyFlag || forceRedraw || windowDimensionsChanged) {
-		if(rootContainer && windowDimensionsChanged) {
-			rootContainer->bake();
+		if(windowDimensionsChanged) {
+			if(rootContainer) {
+				rootContainer->bake();
+				setAbsWindowCoords(rootContainer);
+			}
+			if(rootContainer2) {
+				rootContainer2->bake();
+				setAbsWindowCoords(rootContainer2);
+			}
 		}
 
 
@@ -886,6 +892,7 @@ bool draw_ui(bool forceRedraw)
 		return true; // UI was redrawn
 	}
 	
+	windowDimensionsChanged = false;
 	return false; // UI was not redrawn
 }
 
