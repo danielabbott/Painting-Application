@@ -14,53 +14,27 @@
 
 using namespace std;
 
+Brush testBrush;
 
 CanvasResources canvasResources;
 
-Brush testBrush;
 
-static Layer layers[2];
-void create_layers()
+
+Layer * Canvas::get_first_layer() const
 {
-
-
-	layers[0].type = Layer::Type::LAYER;
-	layers[0].name = "bottom layer";
-	// layers[1].type = Layer::Type::LAYER;
-	// layers[1].name = "top layer";
-
-	canvasResources.firstLayer = &layers[0];
-	canvasResources.activeLayer = &layers[0];
-	// canvasResources.activeLayer = &layers[1];
-	// layers[0].next = &layers[1];
-
-	canvasResources.activeColour[0] = 1;
-	canvasResources.activeColour[1] = 0;
-	canvasResources.activeColour[2] = 0;
-	canvasResources.activeColour[3] = 1;
-
-	for(ImageBlock & block : canvasResources.imageBlocks) {
-		block.dirtyRegion(block.getX(), block.getY(), image_block_size(), image_block_size());
-		block.fillLayer(canvasResources.firstLayer, 0xffa0a0a0);
-	}
-	canvasResources.canvasDirty = true;
+	return firstLayer;
 }
 
-Layer * get_first_layer()
-{
-	return canvasResources.firstLayer;
-}
-
-void set_active_layer(Layer * layer)
+void Canvas::set_active_layer(Layer * layer)
 {
 	// TODO have layer groups selectable just don't allow drawing on them
 	assert(layer->type == Layer::Type::LAYER);
-	canvasResources.activeLayer = layer;
+	activeLayer = layer;
 }
 
-Layer * get_active_layer()
+Layer * Canvas::get_active_layer() const
 {
-	return canvasResources.activeLayer;
+	return activeLayer;
 }
 
 
@@ -69,11 +43,11 @@ void Canvas::widgetCoordsToCanvasCoords(unsigned int cursorX, unsigned int curso
 	unsigned int uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight;
 	getArea(uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight);
 
-	float canvasOnscreenWidth = canvasResources.canvasWidth * canvasResources.canvasZoom;
-	float canvasOnscreenHeight = canvasResources.canvasHeight * canvasResources.canvasZoom;
+	float canvasOnscreenWidth = canvasWidth * canvasZoom;
+	float canvasOnscreenHeight = canvasHeight * canvasZoom;
 
-	x = ((((int)cursorX - canvasResources.canvasX) / canvasOnscreenWidth) + 0.5f) * (int)canvasResources.canvasWidth;
-	y = ((((int)cursorY - canvasResources.canvasY) / canvasOnscreenHeight) + 0.5f) * (int)canvasResources.canvasHeight;
+	x = ((((int)cursorX - canvasX) / canvasOnscreenWidth) + 0.5f) * (int)canvasWidth;
+	y = ((((int)cursorY - canvasY) / canvasOnscreenHeight) + 0.5f) * (int)canvasHeight;
 }
 
 
@@ -86,72 +60,72 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 {
 	if(button == 0) {
 		clog << "Pen released" << endl;
-		canvasResources.penDown = false;
+		penDown = false;
 
 		// Stylus was lifted up, merge the stroke layer with the active layer and clear the stroke layer
 
-		if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
+		if(activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
 			bind_shader_program(canvasResources.strokeMergeShaderProgramRGBA);
 			glUniform4f(canvasResources.strokeMergeColourLocationRGBA, canvasResources.activeColour[0], canvasResources.activeColour[1], 
 				canvasResources.activeColour[2], canvasResources.activeColour[3]);
-			canvasResources.imageBlockTempLayerRGBA.bindFrameBuffer();
+			canvasResources.imageBlockTempLayerRGBA->bindFrameBuffer();
 		}
-		else if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_RG) {
+		else if(activeLayer->imageFormat == ImageFormat::FMT_RG) {
 			bind_shader_program(canvasResources.strokeMergeShaderProgramRG);
 			glUniform2f(canvasResources.strokeMergeColourLocationRG, canvasResources.activeColour[0], canvasResources.activeColour[3]);
-			canvasResources.imageBlockTempLayerRG.bindFrameBuffer();
+			canvasResources.imageBlockTempLayerRG->bindFrameBuffer();
 		}
 		else {
 			bind_shader_program(canvasResources.strokeMergeShaderProgramR);
 			glUniform1f(canvasResources.strokeMergeColourLocationR, canvasResources.activeColour[3]);
-			canvasResources.imageBlockTempLayerR.bindFrameBuffer();
+			canvasResources.imageBlockTempLayerR->bindFrameBuffer();
 		}
 
 		glActiveTexture(GL_TEXTURE0);
-		canvasResources.strokeLayer.bindTexture();
+		canvasResources.strokeLayer->bindTexture();
 
 		glDisable(GL_BLEND);
 
 		glBindVertexArray(canvasResources.vaoId);
 
 		glActiveTexture(GL_TEXTURE1);
-		for(ImageBlock & block : canvasResources.imageBlocks) {
+		for(ImageBlock & block : imageBlocks) {
 			if(block.hasStrokeData) {
-				block.bindTexture(canvasResources.activeLayer);
+				block.bindTexture(activeLayer);
 
-				float strokeImageX = (block.getX() / (float)canvasResources.canvasWidth);
-				float strokeImageY = 1.0f - (block.getY() + image_block_size()) / (float)canvasResources.canvasHeight;
-				float strokeImageWidth  = image_block_size() / (float)canvasResources.canvasWidth;
-				float strokeImageHeight = image_block_size() / (float)canvasResources.canvasHeight;
+				float strokeImageX = (block.getX() / (float)canvasWidth);
+				float strokeImageY = 1.0f - (block.getY() + image_block_size()) / (float)canvasHeight;
+				float strokeImageWidth  = image_block_size() / (float)canvasWidth;
+				float strokeImageHeight = image_block_size() / (float)canvasHeight;
 
 
-				if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
+				if(activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
 					glUniform4f(canvasResources.strokeMergeCoordsLocationRGBA, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
-					glUniform1f(canvasResources.strokeMergeIndexLocationRGBA, block.indexOf(canvasResources.activeLayer));
+					glUniform1f(canvasResources.strokeMergeIndexLocationRGBA, block.indexOf(activeLayer));
 				}
-				else if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_RG) {
+				else if(activeLayer->imageFormat == ImageFormat::FMT_RG) {
 					glUniform4f(canvasResources.strokeMergeCoordsLocationRG, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
-					glUniform1f(canvasResources.strokeMergeIndexLocationRG, block.indexOf(canvasResources.activeLayer));
+					glUniform1f(canvasResources.strokeMergeIndexLocationRG, block.indexOf(activeLayer));
 				}
 				else {
 					glUniform4f(canvasResources.strokeMergeCoordsLocationR, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
-					glUniform1f(canvasResources.strokeMergeIndexLocationR, block.indexOf(canvasResources.activeLayer));
+					glUniform1f(canvasResources.strokeMergeIndexLocationR, block.indexOf(activeLayer));
 				}
 
 				glDrawArrays(GL_TRIANGLES, 0, 6);
 
-				block.copyTo(canvasResources.activeLayer);
+				block.copyTo(activeLayer);
 
 				block.hasStrokeData = false;
 			}
 		}
 
-		canvasResources.strokeLayer.clear();
+		canvasResources.strokeLayer->clear();
 	}
 	else if (button == 2) {
 		// Scroll wheel
 
-		canvasResources.panning = false;
+		panning = false;
 	}
 	return true;
 }
@@ -162,26 +136,26 @@ bool Canvas::onClicked(unsigned int button, unsigned int x, unsigned int y)
 {
 	if(button == 0) {
 		clog << "Pen pressed" << endl;
-		canvasResources.penDown = true;
+		penDown = true;
 
-		widgetCoordsToCanvasCoords(x, y, canvasResources.prevCanvasCoordX, canvasResources.prevCanvasCoordY);
+		widgetCoordsToCanvasCoords(x, y, prevCanvasCoordX, prevCanvasCoordY);
 	}
 	else if (button == 2) {
 		// Scroll wheel
 
-		canvasResources.panning = true;
-		canvasResources.panningPrevCursorX = x;
-		canvasResources.panningPrevCursorY = y;
+		panning = true;
+		panningPrevCursorX = x;
+		panningPrevCursorY = y;
 	}
 	return false;
 }
 
-void drawStroke(int canvasXcoord, int canvasYcoord, float pressure, unsigned int size, float alphaMultiply)
+void Canvas::drawStroke(int canvasXcoord, int canvasYcoord, float pressure, unsigned int size, float alphaMultiply)
 {
 	// TODO: If brush is not textured and covers entire image block then set strokeDataFillsBlock to true and don't fill
 
 	glm::mat4 m = 
-		glm::ortho(0.0f, (float)canvasResources.canvasWidth, (float)canvasResources.canvasHeight, 0.0f)
+		glm::ortho(0.0f, (float)canvasWidth, (float)canvasHeight, 0.0f)
 		* glm::translate(glm::mat4(1.0f), glm::vec3((float)canvasXcoord, (float)canvasYcoord, 0.0f))
 		* glm::scale(glm::mat4(1.0f), glm::vec3((float)size, (float)size, 1.0f))
 	;
@@ -198,7 +172,7 @@ void drawStroke(int canvasXcoord, int canvasYcoord, float pressure, unsigned int
 
 	// Set flag in appropriate image block(s)
 
-	for(ImageBlock & block : canvasResources.imageBlocks) {
+	for(ImageBlock & block : imageBlocks) {
 		if(block.dirtyRegion(canvasXcoord-size/2, canvasYcoord-size/2, size, size)) {
 			block.hasStrokeData = true;
 		}
@@ -206,7 +180,7 @@ void drawStroke(int canvasXcoord, int canvasYcoord, float pressure, unsigned int
 
 }
 
-bool useMouse = false;
+static bool useMouse = false;
 
 void set_canvas_input_device(bool mouse)
 {
@@ -215,16 +189,16 @@ void set_canvas_input_device(bool mouse)
 
 bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pressure)
 {
-	if(canvasResources.panning) {
-		canvasResources.canvasX += (int)cursorX - (int)canvasResources.panningPrevCursorX;
-		canvasResources.canvasY += (int)cursorY - (int)canvasResources.panningPrevCursorY;
+	if(panning) {
+		canvasX += (int)cursorX - (int)panningPrevCursorX;
+		canvasY += (int)cursorY - (int)panningPrevCursorY;
 
-		canvasResources.panningPrevCursorX = cursorX;
-		canvasResources.panningPrevCursorY = cursorY;
+		panningPrevCursorX = cursorX;
+		panningPrevCursorY = cursorY;
 
 		return true;
 	}
-	if(!canvasResources.penDown) {
+	if(!penDown) {
 		return false;
 	}
 
@@ -253,7 +227,7 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 		glBlendEquation(GL_MAX);
 	}
 
-	canvasResources.strokeLayer.bindFrameBuffer();
+	canvasResources.strokeLayer->bindFrameBuffer();
 	glBindVertexArray(canvasResources.brushVaoId);
 
 	//Reduce opacity when using add blend mode
@@ -263,26 +237,26 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 	int canvasYcoord;
 	widgetCoordsToCanvasCoords(cursorX, cursorY, canvasXcoord, canvasYcoord);
 
-	int diffX = canvasXcoord - canvasResources.prevCanvasCoordX;
-	int diffY = canvasYcoord - canvasResources.prevCanvasCoordY;
+	int diffX = canvasXcoord - prevCanvasCoordX;
+	int diffY = canvasYcoord - prevCanvasCoordY;
 
 	float distance = sqrt(diffX*diffX + diffY*diffY);
 	float increment = size / 8 / distance;
 
 	for(float mul = increment; mul < 1.0f; mul += increment) {
-		drawStroke(canvasResources.prevCanvasCoordX + (int)(diffX * mul), canvasResources.prevCanvasCoordY + (int)(diffY * mul), pressure, size, alphaMultiply);
+		drawStroke(prevCanvasCoordX + (int)(diffX * mul), prevCanvasCoordY + (int)(diffY * mul), pressure, size, alphaMultiply);
 	}
 
 	drawStroke(canvasXcoord, canvasYcoord, pressure, size, alphaMultiply);
 
-	canvasResources.prevCanvasCoordX = canvasXcoord;
-	canvasResources.prevCanvasCoordY = canvasYcoord;
+	prevCanvasCoordX = canvasXcoord;
+	prevCanvasCoordY = canvasYcoord;
 
 	if(testBrush.blendMode != Brush::BlendMode::ADD) {
 		glBlendEquation(GL_FUNC_ADD);
 	}
 
-	canvasResources.canvasDirty = true;
+	canvasDirty = true;
 	return true;
 
 }
@@ -294,20 +268,20 @@ bool Canvas::onScroll(unsigned int x, unsigned int y, int direction)
 	widgetCoordsToCanvasCoords(x, y, targetCanvasX, targetCanvasY);
 
 	if(direction > 0) {
-		canvasResources.canvasZoom *= direction*2;
+		canvasZoom *= direction*2;
 	}
 	else {
-		canvasResources.canvasZoom /= -direction*2;
+		canvasZoom /= -direction*2;
 	}
 
-	float smallestZoom = 8 / (float)min(canvasResources.canvasWidth, canvasResources.canvasHeight);
+	float smallestZoom = 8 / (float)min(canvasWidth, canvasHeight);
 
-	if(canvasResources.canvasZoom < smallestZoom) {
-		canvasResources.canvasZoom = smallestZoom;
+	if(canvasZoom < smallestZoom) {
+		canvasZoom = smallestZoom;
 	}
 
-	if(canvasResources.canvasZoom > 30) {
-		canvasResources.canvasZoom = 30;
+	if(canvasZoom > 30) {
+		canvasZoom = 30;
 	}
 
 	// Position the canvas so that the point the mouse was over before zooming
@@ -316,32 +290,32 @@ bool Canvas::onScroll(unsigned int x, unsigned int y, int direction)
 	unsigned int uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight;
 	getArea(uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight);
 
-	float distanceX = (targetCanvasX - (int)canvasResources.canvasWidth/2) * canvasResources.canvasZoom;
-	float distanceY = (targetCanvasY - (int)canvasResources.canvasHeight/2) * canvasResources.canvasZoom;
+	float distanceX = (targetCanvasX - (int)canvasWidth/2) * canvasZoom;
+	float distanceY = (targetCanvasY - (int)canvasHeight/2) * canvasZoom;
 
-	canvasResources.canvasX = (int)x - distanceX;
-	canvasResources.canvasY = (int)y - distanceY;
+	canvasX = (int)x - distanceX;
+	canvasY = (int)y - distanceY;
 
 	return true;
 }
 
-void clear_layer(Layer * layer)
+void Canvas::clear_layer(Layer * layer)
 {
-	for(ImageBlock & block : canvasResources.imageBlocks) {
+	for(ImageBlock & block : imageBlocks) {
 		block.dirtyRegion(block.getX(), block.getY(), image_block_size(), image_block_size());
 		block.fillLayer(layer, 0);
 	}
-	canvasResources.canvasDirty = true;
+	canvasDirty = true;
 }
 
 
-void fill_layer(Layer * layer, uint32_t colour)
+void Canvas::fill_layer(Layer * layer, uint32_t colour)
 {
-	for(ImageBlock & block : canvasResources.imageBlocks) {
+	for(ImageBlock & block : imageBlocks) {
 		block.dirtyRegion(block.getX(), block.getY(), image_block_size(), image_block_size());
 		block.fillLayer(layer, colour);
 	}
-	canvasResources.canvasDirty = true;
+	canvasDirty = true;
 }
 
 void set_active_colour(float r, float g, float b, float a)

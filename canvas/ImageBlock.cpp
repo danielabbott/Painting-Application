@@ -12,19 +12,14 @@ using namespace std;
 
 unsigned int image_block_size() { return 1024; }
 
-void ImageBlock::create()
+ImageBlock::ImageBlock(unsigned int x_, unsigned int y_, Canvas const& canvas)
+: x(x_), y(y_)
 {
-	assert(!layersRGBA.size());
-	assert(!layersRG.size());
-	assert(!layersR.size());
-
-	
-
 	unsigned int numRGBA = 0;
 	unsigned int numRG = 0;
 	unsigned int numR = 0;
 
-	Layer * layer = get_first_layer();
+	Layer * layer = canvas.get_first_layer();
 
 	if(!layer) {
 		// No layers, use default state
@@ -65,23 +60,21 @@ void ImageBlock::create()
 		}
 	}
 
-	layersRGBA = vector<LayerData>(numRGBA);
-	layersRG = vector<LayerData>(numRG);
-	layersR = vector<LayerData>(numR);
 
 	if(numRGBA) {
-		arrayTextureRGBA.create(ImageFormat::FMT_RGBA, image_block_size(), numRGBA);
+		arrayTextureRGBA = new ArrayTexture(ImageFormat::FMT_RGBA, image_block_size(), numRGBA);
 
 		if(GLAD_GL_ARB_clear_texture) {
-			arrayTextureRGBA.clear(0x00ffffff);
+			arrayTextureRGBA->clear(0x00ffffff);
 		}
 
 		for(unsigned int i = 0; i < numRGBA; i++) {
-			layersRGBA[i].colour = 0x00ffffff;
-			layersRGBA[i].frameBuffer.create(arrayTextureRGBA, i);
+			layersRGBA.emplace_back(*arrayTextureRGBA, i);
+			LayerData & layerData = *(layersRGBA.end()-1);
+			layerData.colour = 0x00ffffff;
 
 			if(!GLAD_GL_ARB_clear_texture) {
-				layersRGBA[i].frameBuffer.bindFrameBuffer();
+				layerData.frameBuffer.bindFrameBuffer();
 				glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 				glClear(GL_COLOR_BUFFER_BIT);
 			}
@@ -89,36 +82,38 @@ void ImageBlock::create()
 
 	}
 	if(numRG) {
-		arrayTextureRG.create(ImageFormat::FMT_RG, image_block_size(), numRG);
+		arrayTextureRG = new ArrayTexture(ImageFormat::FMT_RG, image_block_size(), numRG);
 
 		if(GLAD_GL_ARB_clear_texture) {
-			arrayTextureRG.clear(0x00ff);
+			arrayTextureRG->clear(0x00ff);
 		}
 
 		for(unsigned int i = 0; i < numRG; i++) {
-			layersRG[i].colour = 0x00ffffff;
-			layersRG[i].frameBuffer.create(arrayTextureRG, i);
+			layersRG.emplace_back(*arrayTextureRG, i);
+			LayerData & layerData = *(layersRG.end()-1);
+			layerData.colour = 0x00ffffff;
 
 			if(!GLAD_GL_ARB_clear_texture) {
-				layersRG[i].frameBuffer.bindFrameBuffer();
+				layerData.frameBuffer.bindFrameBuffer();
 				glClearColor(1.0f, 0.0f, 0, 0);
 				glClear(GL_COLOR_BUFFER_BIT);
 			}
 		}
 	}
 	if(numR) {
-		arrayTextureR.create(ImageFormat::FMT_R, image_block_size(), numR);
+		arrayTextureR = new ArrayTexture(ImageFormat::FMT_R, image_block_size(), numR);
 
 		if(GLAD_GL_ARB_clear_texture) {
-			arrayTextureR.clear();
+			arrayTextureR->clear();
 		}
 
 		for(unsigned int i = 0; i < numR; i++) {
-			layersR[i].colour = 0x00;
-			layersR[i].frameBuffer.create(arrayTextureR, i);
+			layersR.emplace_back(*arrayTextureR, i);
+			LayerData & layerData = *(layersR.end()-1);
+			layerData.colour = 0x00;
 
 			if(!GLAD_GL_ARB_clear_texture) {
-				layersR[i].frameBuffer.bindFrameBuffer();
+				layerData.frameBuffer.bindFrameBuffer();
 				glClearColor(0, 0, 0, 0);
 				glClear(GL_COLOR_BUFFER_BIT);
 			}
@@ -127,36 +122,17 @@ void ImageBlock::create()
 
 }
 
-void ImageBlock::destroy()
+ImageBlock::~ImageBlock()
 {
-	for(LayerData & l : layersRGBA) {
-		if(l.frameBuffer.isCreated()){
-			l.frameBuffer.destroy();
-		}
-	}
-	for(LayerData & l : layersRG) {
-		if(l.frameBuffer.isCreated()){
-			l.frameBuffer.destroy();
-		}
-	}
-	for(LayerData & l : layersR) {
-		if(l.frameBuffer.isCreated()){
-			l.frameBuffer.destroy();
-		}
-	}
+	// Clear deques to run deconstructors so that users field in array texture objects is decreased to 0
+	// To prevent an assertion failure in the deconstructors of arrayTextureR* 
+	layersRGBA.clear();
+	layersRG.clear();
+	layersR.clear();
 
-
-	if(arrayTextureRGBA.isCreated()) {
-		arrayTextureRGBA.destroy();
-	}
-
-	if(arrayTextureRG.isCreated()) {
-		arrayTextureRG.destroy();
-	}
-
-	if(arrayTextureR.isCreated()) {
-		arrayTextureR.destroy();
-	}
+	delete arrayTextureR;
+	delete arrayTextureRG;
+	delete arrayTextureRGBA;
 }
 
 int ImageBlock::indexOf(Layer * layer)
@@ -183,18 +159,18 @@ void ImageBlock::bindFrameBuffer(Layer * layer)
 	}
 }
 
-void ImageBlock::bindTexture(Layer * layer)
+void ImageBlock::bindTexture(Layer * layer) const
 {
 	assert(layer);
 
 	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
-		arrayTextureRGBA.bind();
+		arrayTextureRGBA->bind();
 	}
 	else if(layer->imageFormat == ImageFormat::FMT_RG) {
-		arrayTextureRG.bind();
+		arrayTextureRG->bind();
 	}
 	else if(layer->imageFormat == ImageFormat::FMT_R) {
-		arrayTextureR.bind();
+		arrayTextureR->bind();
 	}
 }
 
@@ -205,15 +181,15 @@ void ImageBlock::copyTo(Layer * layer)
 
 	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
 		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-		arrayTextureRGBA.copy(layer->imageFormatSpecificIndex);
+		arrayTextureRGBA->copy(layer->imageFormatSpecificIndex);
 	}
 	else if(layer->imageFormat == ImageFormat::FMT_RG) {
 		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-		arrayTextureRG.copy(layer->imageFormatSpecificIndex);
+		arrayTextureRG->copy(layer->imageFormatSpecificIndex);
 	}
 	else if(layer->imageFormat == ImageFormat::FMT_R) {
 		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-		arrayTextureR.copy(layer->imageFormatSpecificIndex);
+		arrayTextureR->copy(layer->imageFormatSpecificIndex);
 	}
 	else {
 		assert(0);
@@ -226,15 +202,15 @@ void ImageBlock::uploadImage(Layer * layer, unsigned int x, unsigned int y, unsi
 
 	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
 		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-		arrayTextureRGBA.uploadImage(layer->imageFormatSpecificIndex, x, y, width, height, data, stride, sourceType);
+		arrayTextureRGBA->uploadImage(layer->imageFormatSpecificIndex, x, y, width, height, data, stride, sourceType);
 	}
 	else if(layer->imageFormat == ImageFormat::FMT_RG) {
 		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-		arrayTextureRG.uploadImage(layer->imageFormatSpecificIndex, x, y, width, height, data, stride, sourceType);
+		arrayTextureRG->uploadImage(layer->imageFormatSpecificIndex, x, y, width, height, data, stride, sourceType);
 	}
 	else if(layer->imageFormat == ImageFormat::FMT_R) {
 		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-		arrayTextureR.uploadImage(layer->imageFormatSpecificIndex, x, y, width, height, data, stride, sourceType);
+		arrayTextureR->uploadImage(layer->imageFormatSpecificIndex, x, y, width, height, data, stride, sourceType);
 	}
 }
 
@@ -247,7 +223,7 @@ void ImageBlock::fillLayer(Layer * layer, uint32_t colour)
 		layersRGBA[layer->imageFormatSpecificIndex].colour = colour;
 
 		if(GLAD_GL_ARB_clear_texture) {
-			arrayTextureRGBA.clear(layer->imageFormatSpecificIndex, 1, colour);
+			arrayTextureRGBA->clear(layer->imageFormatSpecificIndex, 1, colour);
 		}
 		else {
 			layersRGBA[layer->imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
@@ -260,7 +236,7 @@ void ImageBlock::fillLayer(Layer * layer, uint32_t colour)
 		layersRG[layer->imageFormatSpecificIndex].colour = colour;
 
 		if(GLAD_GL_ARB_clear_texture) {
-			arrayTextureRG.clear(layer->imageFormatSpecificIndex, 1, colour);
+			arrayTextureRG->clear(layer->imageFormatSpecificIndex, 1, colour);
 		}
 		else {
 			layersRG[layer->imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
@@ -273,7 +249,7 @@ void ImageBlock::fillLayer(Layer * layer, uint32_t colour)
 		layersR[layer->imageFormatSpecificIndex].colour = colour;
 
 		if(GLAD_GL_ARB_clear_texture) {
-			arrayTextureR.clear(layer->imageFormatSpecificIndex, 1, colour);
+			arrayTextureR->clear(layer->imageFormatSpecificIndex, 1, colour);
 		}
 		else {
 			layersR[layer->imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();

@@ -2,8 +2,11 @@
 #include <cassert>
 #include <cstring>
 #include <hwcaps.h>
+#include <stdexcept>
 
-void ArrayTexture::create(ImageFormat type_, unsigned int wh, unsigned int imageCount_)
+using namespace std;
+
+ArrayTexture::ArrayTexture(ImageFormat type_, unsigned int wh, unsigned int imageCount_)
 {
 	assert(wh);
 	assert(wh <= max_texture_size());
@@ -15,6 +18,11 @@ void ArrayTexture::create(ImageFormat type_, unsigned int wh, unsigned int image
 	type = type_;
 
 	glGenTextures(1, &id);
+
+	if(!id) {
+		throw runtime_error("Error in glGenTextures");
+	}
+
 	glBindTexture(GL_TEXTURE_2D_ARRAY, id);
 
 	if(GLAD_GL_ARB_texture_storage) {
@@ -57,19 +65,19 @@ void ArrayTexture::bind() const
 	glBindTexture(GL_TEXTURE_2D_ARRAY, id);
 }
 
-void ArrayTexture::clear(unsigned int firstImage, unsigned int imagesToFill, uint32_t colour)
+void ArrayTexture::clear(unsigned int firstImage, unsigned int imagesToFill, uint32_t colour) const
 {
 	assert(GLAD_GL_ARB_clear_texture);
 	glClearTexSubImage(id, 0, 0, 0, firstImage, widthHeight, widthHeight, imagesToFill, GL_RGBA, GL_UNSIGNED_BYTE, &colour);
 }
 
-void ArrayTexture::clear(uint32_t colour)
+void ArrayTexture::clear(uint32_t colour) const
 {
 	assert(GLAD_GL_ARB_clear_texture);
 	glClearTexImage(id, 0, GL_RGBA, GL_UNSIGNED_BYTE, &colour);
 }
 
-void ArrayTexture::upload(void * data, unsigned int firstImage, unsigned int imagesToFill)
+void ArrayTexture::upload(void * data, unsigned int firstImage, unsigned int imagesToFill) const
 {
 	assert(data);
 	if(type == ImageFormat::FMT_RGBA) {
@@ -88,22 +96,21 @@ void ArrayTexture::upload(void * data, unsigned int firstImage, unsigned int ima
 
 // When a new layer is added or a layer is deleted, a new array texture is created for each layer and the data is copied across
 
-void ArrayTexture::copy(unsigned int startIndex)
+void ArrayTexture::copy(unsigned int startIndex) const
 {
 	bind();
 	glCopyTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, startIndex, 0, 0, widthHeight, widthHeight);
 }
 
-void ArrayTexture::destroy()
+ArrayTexture::~ArrayTexture()
 {
-	assert(id);
 	assert(!users);
 
 	glDeleteTextures(1, &id);
 	id = 0;
 }
 
-void ArrayTexture::uploadImage(unsigned int layerIndex, unsigned int x, unsigned int y, unsigned int width, unsigned int height, void * data, unsigned int stride, ImageFormat sourceType)
+void ArrayTexture::uploadImage(unsigned int layerIndex, unsigned int x, unsigned int y, unsigned int width, unsigned int height, void * data, unsigned int stride, ImageFormat sourceType) const
 {
 	if(stride) {
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, stride);

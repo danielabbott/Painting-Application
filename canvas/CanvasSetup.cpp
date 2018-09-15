@@ -14,6 +14,8 @@ extern CanvasResources canvasResources;
 
 extern Brush testBrush;
 
+static bool globalCanvasResourcesAllocated = false;
+
 static inline void create_canvas_generation_shader_program()
 {
 	GLuint vsId = load_shader("res/canvas_gen.vert", GL_VERTEX_SHADER);
@@ -234,65 +236,110 @@ static inline void create_opengl_buffers()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-static inline void create_opengl_images()
+static inline void create_opengl_images(unsigned int canvasWidth, unsigned int canvasHeight)
 {
-	if(canvasResources.canvasWidth > max_texture_size() || canvasResources.canvasHeight > max_texture_size()) {
+
+	canvasResources.strokeLayer = new FrameBuffer(ImageFormat::FMT_R, canvasWidth, canvasHeight);
+	canvasResources.strokeLayer->clear();
+	canvasResources.imageBlockTempLayerRGBA = new FrameBuffer(ImageFormat::FMT_RGBA, image_block_size(), image_block_size());
+	canvasResources.imageBlockTempLayerRG = new FrameBuffer(ImageFormat::FMT_RG, image_block_size(), image_block_size());
+	canvasResources.imageBlockTempLayerR = new FrameBuffer(ImageFormat::FMT_R, image_block_size(), image_block_size());
+
+}
+
+// Test layers
+static Layer layers[2];
+
+void Canvas::initialise_canvas_display(unsigned int x, unsigned int y)
+{
+	canvasX = x;
+	canvasY = y;
+
+	if(!globalCanvasResourcesAllocated) {
+
+		// Shader programs
+
+		create_stroke_merge_shader_program();
+
+		create_canvas_generation_shader_program();
+
+		// testBrush.blendMode = Brush::BlendMode::ADD;
+		// testBrush.create("res/brush_noise.frag");
+		
+		testBrush.create("res/brush_circle.frag");
+
+		create_simple_texture_shader_program();	
+
+		// Vertex Buffers and uniform buffers
+
+		create_opengl_buffers();
+
+		// Create textures and framebuffers
+
+		create_opengl_images(canvasWidth, canvasHeight);
+
+		globalCanvasResourcesAllocated = true;
+	}
+
+}
+
+Canvas::Canvas(unsigned int x, unsigned int y, unsigned int width, unsigned int height) 
+: UI::Canvas(x, y, width, height)
+{
+	if(canvasWidth > max_texture_size() || canvasHeight > max_texture_size()) {
 		throw runtime_error("Canvas too big (exceeds OpenGL limitations)");
 	}
 
-	canvasResources.canvasFrameBuffer.create(ImageFormat::FMT_RGBA, canvasResources.canvasWidth, canvasResources.canvasHeight);
-	canvasResources.strokeLayer.create(ImageFormat::FMT_R, canvasResources.canvasWidth, canvasResources.canvasHeight);
-	canvasResources.strokeLayer.clear();
-	canvasResources.imageBlockTempLayerRGBA.create(ImageFormat::FMT_RGBA, image_block_size(), image_block_size());
-	canvasResources.imageBlockTempLayerRG.create(ImageFormat::FMT_RG, image_block_size(), image_block_size());
-	canvasResources.imageBlockTempLayerR.create(ImageFormat::FMT_R, image_block_size(), image_block_size());
+	canvasFrameBuffer = new FrameBuffer(ImageFormat::FMT_RGBA, canvasWidth, canvasHeight);
 
-	canvasResources.imageBlocks = vector<ImageBlock>(((canvasResources.canvasHeight + image_block_size() - 1) / image_block_size()) * ((canvasResources.canvasWidth + image_block_size() - 1) / image_block_size()));
+
+
+	// create test layers
+
+	layers[0].type = Layer::Type::LAYER;
+	layers[0].name = "bottom layer";
+	layers[0].imageFormatSpecificIndex = 0;
+	// layers[1].type = Layer::Type::LAYER;
+	// layers[1].name = "top layer";
+	// layers[1].imageFormatSpecificIndex = 1;
+
+	firstLayer = &layers[0];
+	activeLayer = &layers[0];
+	// activeLayer = &layers[1];
+	// layers[0].next = &layers[1];
+
+	canvasResources.activeColour[0] = 1;
+	canvasResources.activeColour[1] = 0;
+	canvasResources.activeColour[2] = 0;
+	canvasResources.activeColour[3] = 1;
+
+	// Create image blocks
+
+	imageBlocks = deque<ImageBlock>();
 
 	try {
 		unsigned int i = 0;
-		for(unsigned int y = 0; y < (canvasResources.canvasHeight + image_block_size() - 1) / image_block_size(); y++) {
-			for(unsigned int x = 0; x < (canvasResources.canvasWidth + image_block_size() - 1) / image_block_size(); x++, i++) {
-				canvasResources.imageBlocks[i] = ImageBlock(x*image_block_size(), y*image_block_size());
-				canvasResources.imageBlocks[i].create();
+		for(unsigned int y = 0; y < (canvasHeight + image_block_size() - 1) / image_block_size(); y++) {
+			for(unsigned int x = 0; x < (canvasWidth + image_block_size() - 1) / image_block_size(); x++, i++) {
+				imageBlocks.emplace_back(x*image_block_size(), y*image_block_size(), *this);
 			}	
 		}
 	} catch(const runtime_error & e) {
 		clog << "No tablets detected" << endl;
 	}
 
+	for(ImageBlock & block : imageBlocks) {
+		block.dirtyRegion(block.getX(), block.getY(), image_block_size(), image_block_size());
+		block.fillLayer(firstLayer, 0xffa0a0a0);
+	}
+	canvasDirty = true;
 }
 
-void initialise_canvas_display(unsigned int x, unsigned int y)
+void Canvas::freeCanvasResources()
 {
-	canvasResources.canvasX = x;
-	canvasResources.canvasY = y;
-
-
-	// Shader programs
-
-	create_stroke_merge_shader_program();
-
-	create_canvas_generation_shader_program();
-
-	// testBrush.blendMode = Brush::BlendMode::ADD;
-	// testBrush.create("res/brush_noise.frag");
-	
-	testBrush.create("res/brush_circle.frag");
-
-	create_simple_texture_shader_program();	
-
-	// Vertex Buffers and uniform buffers
-
-	create_opengl_buffers();
-
-
-	// Create textures and framebuffers
-
-	create_opengl_images();
-
-
-}
+	delete canvasFrameBuffer;
+	imageBlocks.clear();
+} 
 
 void free_canvas_resources()
 {
@@ -301,15 +348,10 @@ void free_canvas_resources()
 	canvasResources.shaderProgram = 0;
 	glDeleteProgram(canvasResources.canvasTextureShaderProgram);
 
-	canvasResources.canvasFrameBuffer.destroy();
-	canvasResources.imageBlockTempLayerRGBA.destroy();
-	canvasResources.imageBlockTempLayerRG.destroy();
-	canvasResources.imageBlockTempLayerR.destroy();
-	canvasResources.strokeLayer.destroy();
-	for(ImageBlock & block : canvasResources.imageBlocks) {
-		block.destroy();
-	}
-	canvasResources.imageBlocks.clear();
+	delete canvasResources.imageBlockTempLayerRGBA;
+	delete canvasResources.imageBlockTempLayerRG;
+	delete canvasResources.imageBlockTempLayerR;
+	delete canvasResources.strokeLayer;
 
 	glBindVertexArray(0);
 

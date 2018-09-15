@@ -2,24 +2,21 @@
 #include <stdexcept>
 #include <cassert>
 
+using namespace std;
+
 namespace UI {
 	void get_window_dimensions(unsigned int & windowWidth, unsigned int & windowHeight);
 }
 
-using namespace std;
 
-
-void ArrayTextureFrameBuffer::create(ArrayTexture & arrayTexture_, unsigned int arrayTextureIndex)
+ArrayTextureFrameBuffer::ArrayTextureFrameBuffer(ArrayTexture & arrayTexture_, unsigned int arrayTextureIndex)
 {
-	assert(!frameBufferName);
-	assert(arrayTexture_.id);
-
 	arrayTexture = &arrayTexture_;
 
 	glGenFramebuffers(1, &frameBufferName);
 
 	if(!frameBufferName) {
-		throw runtime_error("Error creating OpenGL framebuffer(glGenFramebuffers)");
+		throw runtime_error("Error creating OpenGL framebuffer (glGenFramebuffers)");
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferName);
@@ -39,28 +36,22 @@ void ArrayTextureFrameBuffer::create(ArrayTexture & arrayTexture_, unsigned int 
 	arrayTexture->users++;
 }
 
-void ArrayTextureFrameBuffer::bindFrameBuffer()
+void ArrayTextureFrameBuffer::bindFrameBuffer() const
 {
-	assert(frameBufferName);
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferName);
 	glViewport(0, 0, arrayTexture->widthHeight, arrayTexture->widthHeight);
 }
 
-void ArrayTextureFrameBuffer::destroy()
+ArrayTextureFrameBuffer::~ArrayTextureFrameBuffer()
 {
-	assert(frameBufferName);
 	arrayTexture->users--;
 	glDeleteFramebuffers(1, &frameBufferName);
 	frameBufferName = 0;
 }
 
-void FrameBuffer::create(ImageFormat type_, unsigned int width_, unsigned int height_)
+FrameBuffer::FrameBuffer(ImageFormat type_, unsigned int width_, unsigned int height_)
+:type(type_), width(width_), height(height_)
 {
-	assert(!frameBufferName);
-	type = type_;
-
-	width = width_;
-	height = height_;
 
 	glGenFramebuffers(1, &frameBufferName);
 
@@ -106,19 +97,19 @@ void FrameBuffer::create(ImageFormat type_, unsigned int width_, unsigned int he
 
 }
 
-void FrameBuffer::bindFrameBuffer()
+void FrameBuffer::bindFrameBuffer() const
 {
 	assert(frameBufferName);
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferName);
 	glViewport(0, 0, width, height);
 }
 
-void FrameBuffer::bindTexture()
+void FrameBuffer::bindTexture() const
 {
 	glBindTexture(GL_TEXTURE_2D, backingTextureId);
 }
 
-void FrameBuffer::getTexureData(void * outputBuffer)
+void FrameBuffer::getTexureData(void * outputBuffer) const
 {
 	if(type == ImageFormat::FMT_RGBA) {
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, GL_UNSIGNED_BYTE, outputBuffer);
@@ -131,7 +122,7 @@ void FrameBuffer::getTexureData(void * outputBuffer)
 	}
 }
 
-void FrameBuffer::clear()
+void FrameBuffer::clear() const
 {
 	if(GLAD_GL_ARB_clear_texture) {
 		if(type == ImageFormat::FMT_RGBA) {
@@ -162,12 +153,10 @@ void FrameBuffer::clear()
 	}
 }
 
-void FrameBuffer::destroy()
+FrameBuffer::~FrameBuffer()
 {
-	assert(frameBufferName);
 	glDeleteTextures(1, &backingTextureId);
 	glDeleteFramebuffers(1, &frameBufferName);
-	frameBufferName = 0;
 }
 
 

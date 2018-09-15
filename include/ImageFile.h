@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cstdio>
+#include <fstream>
 
 enum class ImageFormat {
 	FMT_RGBA, // Regular colour format
@@ -15,5 +16,5 @@ enum class ImageFormat {
 // The caller is responsible for closing the file handle
 std::vector<unsigned char> load_png(FILE * file, unsigned int & width, unsigned int & height, bool & wasPNG);
 
-
-std::vector<unsigned char> load_webp(FILE * file, unsigned int & width, unsigned int & height, bool & wasWebp);
+// Open ifstream in binary mode
+std::vector<unsigned char> load_webp(std::ifstream && file, unsigned int & width, unsigned int & height, bool & wasWebp);

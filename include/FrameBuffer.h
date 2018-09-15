@@ -10,46 +10,40 @@ class ArrayTextureFrameBuffer
 	unsigned int size = 0;
 	ArrayTexture * arrayTexture;
 public:
-	void create(ArrayTexture & arrayTexture, unsigned int arrayTextureIndex);
+	ArrayTextureFrameBuffer(ArrayTexture & arrayTexture, unsigned int arrayTextureIndex);
+	ArrayTextureFrameBuffer(ArrayTextureFrameBuffer const&) = delete;
+	~ArrayTextureFrameBuffer();
 
 	// For drawing on the framebuffer
-	void bindFrameBuffer();
+	void bindFrameBuffer() const;
 
-	void destroy();
-
-	bool isCreated() const { return frameBufferName != 0; }
-
-	ArrayTextureFrameBuffer() {}
-	ArrayTextureFrameBuffer(ArrayTextureFrameBuffer const&) = delete;
 };
 
 class FrameBuffer
 {
 	GLuint frameBufferName = 0;
 	GLuint backingTextureId;
+	ImageFormat type;
 	unsigned int width = 0;
 	unsigned int height = 0;
-	ImageFormat type;
 public:
 
-	void create(ImageFormat type, unsigned int width, unsigned int height);
+	FrameBuffer(ImageFormat type, unsigned int width, unsigned int height);
+	FrameBuffer(FrameBuffer const&) = delete;
+	~FrameBuffer();
 
 	// uses GL_ARB_clear_texture if available, otherwise will bind the framebuffer
-	void clear();
+	void clear() const;
 
 	// For drawing on the framebuffer
-	void bindFrameBuffer();
+	void bindFrameBuffer() const;
 
 	// For using this framebuffer as a texture to draw with
-	void bindTexture();
+	void bindTexture() const;
 
 	// The texture MUST be bound when this function is called
-	void getTexureData(void * outputBuffer);
-
-	void destroy();
+	void getTexureData(void * outputBuffer) const;
 	
-	FrameBuffer() {}
-	FrameBuffer(FrameBuffer const&) = delete;
 };
 
 void bind_default_framebuffer();

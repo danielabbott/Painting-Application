@@ -1,10 +1,10 @@
 #include <Canvas.h>
 #include <Layer.h>
 #include <cassert>
-#include "CanvasState.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <Shader.h>
+#include "CanvasState.h"
 
 using namespace std;
 
@@ -18,15 +18,15 @@ void Canvas::draw() {
 	getArea(uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight);
 
 	glBindVertexArray(canvasResources.vaoId);
-	if(canvasResources.canvasDirty) {
+	if(canvasDirty) {
 		bind_shader_program(canvasResources.shaderProgram);
 		glDisable(GL_BLEND);
-		canvasResources.canvasFrameBuffer.bindFrameBuffer();
+		canvasFrameBuffer->bindFrameBuffer();
 
 		glActiveTexture(GL_TEXTURE3);
-		canvasResources.strokeLayer.bindTexture();
+		canvasResources.strokeLayer->bindTexture();
 
-		for(ImageBlock & block : canvasResources.imageBlocks) {
+		for(ImageBlock & block : imageBlocks) {
 			if(!block.dirty) {
 				continue;
 			}
@@ -36,8 +36,8 @@ void Canvas::draw() {
 			unsigned int rgIndex = 0;
 			unsigned int rIndex = 0;
 
-			assert(canvasResources.firstLayer);
-			Layer * layer = canvasResources.firstLayer;
+			assert(firstLayer);
+			Layer * layer = firstLayer;
 			vector<Op> ops;
 
 			canvasResources.uniformData.baseColour[0] = canvasResources.uniformData.baseColour[1] = 
@@ -47,13 +47,13 @@ void Canvas::draw() {
 				if(layer->type == Layer::Type::LAYER) {
 					const ImageBlock::LayerData * layerData = nullptr;
 					if(layer->imageFormat == ImageFormat::FMT_RGBA) {
-						layerData = &block.layersRGBA[rgbaIndex++];
+						layerData = &block.RGBALayers()[rgbaIndex++];
 					}
 					else if(layer->imageFormat == ImageFormat::FMT_RG) {
-						layerData = &block.layersRG[rgIndex++];
+						layerData = &block.RGLayers()[rgIndex++];
 					}
 					else {
-						layerData = &block.layersR[rIndex++];
+						layerData = &block.RLayers()[rIndex++];
 					}
 
 					if(layerData->dataType == ImageBlock::LayerData::DataType::SOLID_COLOUR) {
@@ -82,12 +82,12 @@ void Canvas::draw() {
 						ops.push_back(op);
 					}
 
-					if(layer == canvasResources.activeLayer && canvasResources.penDown && block.hasStrokeData) {
+					if(layer == activeLayer && penDown && block.hasStrokeData) {
 						// Stroke must be overlayed
 						Op op;
 						op.opType = 8;
 
-						if(canvasResources.activeLayer->imageFormat == ImageFormat::FMT_R) {
+						if(activeLayer->imageFormat == ImageFormat::FMT_R) {
 							op.colour[0] = 1;
 							op.colour[1] = 1;
 							op.colour[2] = 1;
@@ -123,7 +123,7 @@ void Canvas::draw() {
 			Op op = {};
 			ops.push_back(op);
 
-			if(canvasResources.penDown && block.hasStrokeData) {
+			if(penDown && block.hasStrokeData) {
 				canvasResources.uniformData.ops[0].opType = 7;
 
 				memcpy(&canvasResources.uniformData.ops[1], ops.data(), (ops.size() > 63 ? 63 : ops.size()) * sizeof(Op));
@@ -133,20 +133,20 @@ void Canvas::draw() {
 			}
 
 
-			canvasResources.uniformData.offsetX = (((block.getX() + block.dirtyMinX) / (float)canvasResources.canvasWidth) * 2.0f) - 1.0f;
-			canvasResources.uniformData.offsetY = (((1.0f - (block.getY() + block.dirtyMinY + block.dirtyHeight) / (float)canvasResources.canvasHeight) * 2.0f) - 1.0f);
-			canvasResources.uniformData.width   = ((block.dirtyWidth / (float)canvasResources.canvasWidth) * 2.0f);
-			canvasResources.uniformData.height  = ((block.dirtyHeight / (float)canvasResources.canvasHeight) * 2.0f);
+			canvasResources.uniformData.offsetX = (((block.getX() + block.getDirtyMinX()) / (float)canvasWidth) * 2.0f) - 1.0f;
+			canvasResources.uniformData.offsetY = (((1.0f - (block.getY() + block.getDirtyMinY() + block.getDirtyHeight()) / (float)canvasHeight) * 2.0f) - 1.0f);
+			canvasResources.uniformData.width   = ((block.getDirtyWidth() / (float)canvasWidth) * 2.0f);
+			canvasResources.uniformData.height  = ((block.getDirtyHeight() / (float)canvasHeight) * 2.0f);
 
-			canvasResources.uniformData.uvX = block.dirtyMinX / (float)image_block_size();
-			canvasResources.uniformData.uvY = block.dirtyMinY / (float)image_block_size();
-			canvasResources.uniformData.uvWidth = block.dirtyWidth / (float)image_block_size();
-			canvasResources.uniformData.uvHeight = block.dirtyHeight / (float)image_block_size();
+			canvasResources.uniformData.uvX = block.getDirtyMinX() / (float)image_block_size();
+			canvasResources.uniformData.uvY = block.getDirtyMinY() / (float)image_block_size();
+			canvasResources.uniformData.uvWidth = block.getDirtyWidth() / (float)image_block_size();
+			canvasResources.uniformData.uvHeight = block.getDirtyHeight() / (float)image_block_size();
 
 			glActiveTexture(GL_TEXTURE0);
 
-			if(block.arrayTextureRGBA.isCreated()) {
-				block.arrayTextureRGBA.bind();
+			if(block.getArrayTextureRGBA()) {
+				block.getArrayTextureRGBA()->bind();
 			}
 			else {
 				glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
@@ -154,8 +154,8 @@ void Canvas::draw() {
 
 			glActiveTexture(GL_TEXTURE1);
 
-			if(block.arrayTextureRG.isCreated()) {
-				block.arrayTextureRG.bind();
+			if(block.getArrayTextureRG()) {
+				block.getArrayTextureRG()->bind();
 			}
 			else {
 				glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
@@ -163,8 +163,8 @@ void Canvas::draw() {
 
 			glActiveTexture(GL_TEXTURE2);
 
-			if(block.arrayTextureR.isCreated()) {
-				block.arrayTextureR.bind();
+			if(block.getArrayTextureR()) {
+				block.getArrayTextureR()->bind();
 			}
 			else {
 				glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
@@ -184,15 +184,15 @@ void Canvas::draw() {
 	bind_default_framebuffer();
 	bind_shader_program(canvasResources.canvasTextureShaderProgram);
 	glActiveTexture(GL_TEXTURE0);
-	canvasResources.canvasFrameBuffer.bindTexture();
+	canvasFrameBuffer->bindTexture();
 
 	glm::mat4 m = 
 		glm::ortho(0.0f, (float)windowWidth, (float)windowHeight, 0.0f)
 		* glm::translate(glm::mat4(1.0f), glm::vec3(
-			(float)((int)uiCanvasX + canvasResources.canvasX),
-			(float)((int)uiCanvasY + canvasResources.canvasY),
+			(float)((int)uiCanvasX + canvasX),
+			(float)((int)uiCanvasY + canvasY),
 		0.0f))
-		* glm::scale(glm::mat4(1.0f), glm::vec3((float)canvasResources.canvasWidth * canvasResources.canvasZoom, (float)canvasResources.canvasHeight * canvasResources.canvasZoom, 1.0))
+		* glm::scale(glm::mat4(1.0f), glm::vec3((float)canvasWidth * canvasZoom, (float)canvasHeight * canvasZoom, 1.0))
 		* glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, -0.5f, 0.0f))
 	;
 
@@ -200,6 +200,6 @@ void Canvas::draw() {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
-	canvasResources.canvasDirty = false;
+	canvasDirty = false;
 
 }

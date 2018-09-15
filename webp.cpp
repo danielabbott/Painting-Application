@@ -1,9 +1,9 @@
-#include <cstdio>
-#include <vector>
 #include <cstdint>
 #include <stdexcept>
 #include <cassert>
 #include <string>
+#include <iostream>
+#include <ImageFile.h>
 
 using namespace std;
 
@@ -14,7 +14,7 @@ typedef bool (*f_WebPGetInfo)(const uint8_t* data, size_t data_size, int* width,
 static f_WebPGetInfo getInfo;
 
 typedef uint8_t * (*f_WebPDecodeRGBAInto)(const uint8_t* data, size_t data_size, uint8_t* output_buffer, int output_buffer_size, int output_stride);
-f_WebPDecodeRGBAInto decodeRGBA;
+f_WebPDecodeRGBAInto decodeRGBAInto;
 
 
 #ifdef _WIN32
@@ -33,9 +33,9 @@ static inline void load_so()
 	}
 
 	getInfo = (f_WebPGetInfo)GetProcAddress(dll, "WebPGetInfo");
-	decodeRGBA = (f_WebPDecodeRGBAInto)GetProcAddress(dll, "WebPDecodeRGBAInto");
+	decodeRGBAInto = (f_WebPDecodeRGBAInto)GetProcAddress(dll, "WebPDecodeRGBAInto");
 
-	if(!getInfo || !decodeRGBA) {
+	if(!getInfo || !decodeRGBAInto) {
 		throw runtime_error("WebP Functions(s) not found in webp.dll");
 	}
 
@@ -59,9 +59,9 @@ static inline void load_so()
 	}
 
 	getInfo = (f_WebPGetInfo)dlsym(so, "WebPGetInfo");
-	decodeRGBA = (f_WebPDecodeRGBAInto)dlsym(so, "WebPDecodeRGBAInto");
+	decodeRGBAInto = (f_WebPDecodeRGBAInto)dlsym(so, "WebPDecodeRGBAInto");
 
-	if(!getInfo || !decodeRGBA) {
+	if(!getInfo || !decodeRGBAInto) {
 		throw runtime_error("WebP Functions(s) not found in libwebp.so");
 	}
 
@@ -69,27 +69,20 @@ static inline void load_so()
 }
 #endif
 
-std::vector<unsigned char> load_webp(FILE * file, unsigned int & width, unsigned int & height, bool & wasWebp)
+std::vector<unsigned char> load_webp(ifstream && file, unsigned int & width, unsigned int & height, bool & wasWebp)
 {
-	assert(file);
-
 	wasWebp = false;
 
 	if(!soLoaded) {
 		load_so();
 	}
 
-	fseek(file, 0, SEEK_END);
-	long fsize = ftell(file);
-	rewind(file);
+	file.seekg(0, file.end);
+	long fsize = file.tellg();
+	file.seekg(0);
 
 	uint8_t * rawData = new uint8_t[fsize];
-	int read = fread(rawData, fsize, 1, file);
-	if(read != 1) {
-		delete[] rawData;
-		throw runtime_error("IO error reading .webp file");
-	}
-
+	file.read((char *)rawData, fsize);
 
 	if(!getInfo(rawData, fsize, (int *)&width, (int *)&height))
 	{
@@ -98,8 +91,10 @@ std::vector<unsigned char> load_webp(FILE * file, unsigned int & width, unsigned
 
 	wasWebp = true;
 
+	clog << "Loading .webp. Width: " << width << ", height: " << height << ", file size: " << fsize << endl;
+
 	vector<uint8_t> data(width*height*4);
-	if(!decodeRGBA(rawData, fsize, data.data(), data.size(), width*4))
+	if(!decodeRGBAInto(rawData, fsize, data.data(), data.size(), width*4))
 	{
 		throw runtime_error("Error decoding .webp image");
 	}

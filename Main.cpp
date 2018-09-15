@@ -16,6 +16,7 @@
 
 using namespace std;
 
+Canvas * canvas;
 
 class MyButton : public UI::Button
 {
@@ -24,7 +25,7 @@ class MyButton : public UI::Button
 		UI::Button::onMouseButtonReleased(button);
 		if(!button) {
 			// clear_layer(get_first_layer()->next);
-			fill_layer(get_first_layer(), 0xffffffff);
+			canvas->fill_layer(canvas->get_first_layer(), 0xffffffff);
 		}
 		return true; 
 	}
@@ -76,14 +77,14 @@ class LayerButton : public UI::Label
 	{ 
 		UI::Label::onMouseButtonReleased(button);
 		if(!button) {
-			set_active_layer(layer);
+			canvas->set_active_layer(layer);
 		}
 		return true; 
 	}
 
 	virtual uint32_t getBackGroundColour() override
 	{
-		if(layer == get_active_layer()) {
+		if(layer == canvas->get_active_layer()) {
 			return 0x30300000;
 		}
 		else {
@@ -103,7 +104,7 @@ class ColourSetter : public UI::Button
 		cout<<button<<endl;
 		UI::Button::onMouseButtonReleased(button);
 		if(!button) {
-			set_active_colour(colour[0], colour[1], colour[2], 1);
+			set_active_colour(colour[0], colour[1], colour[2], 0.3f);
 		}
 		return true; 
 	}
@@ -181,11 +182,9 @@ int main(int argc, char ** argv)
 		clog << "No tablets detected" << endl;
 	}
 
-	create_layers();
 
 
 	UI::initialise_ui();
-
 
 
 	InputToggleButton inp = InputToggleButton();
@@ -207,11 +206,11 @@ int main(int argc, char ** argv)
 	ColourSetter blue("Blue", 0, 0, 1);
 	UI::MenuBar container2 = UI::MenuBar(vector<UI::Widget *> { &button12345,&red,&green,&blue }, 1, 2, 0, 0, 0xff404040, UI::Container::LayoutManager::FLOW_ACCROSS);
 
-	Canvas canvas = Canvas(1, 1, 0, 0);
+	canvas = new Canvas(1, 1, 0, 0);
 
 	vector<UI::Widget *> layerLabels;
 
-	Layer * layer = get_first_layer();
+	Layer * layer = canvas->get_first_layer();
 	while(1) {
 		if(layer->type == Layer::Type::LAYER) {
 			layerLabels.insert(layerLabels.begin(), new LayerButton(layer));
@@ -231,12 +230,12 @@ int main(int argc, char ** argv)
 
 
 
-	UI::Container root = UI::Container(vector<UI::Widget *> { &container,&canvas,&container2,&layersContainer }, 0, 0, 0, 0, 0, UI::Container::LayoutManager::BORDER);
+	UI::Container root = UI::Container(vector<UI::Widget *> { &container,canvas,&container2,&layersContainer }, 0, 0, 0, 0, 0, UI::Container::LayoutManager::BORDER);
 	set_root_container(&root);
 
 	unsigned int x, y, canvasWidth, canvasHeight;
-	canvas.getArea(x, y, canvasWidth, canvasHeight);
-	initialise_canvas_display(canvasWidth/2, canvasHeight/2);
+	canvas->getArea(x, y, canvasWidth, canvasHeight);
+	canvas->initialise_canvas_display(canvasWidth/2, canvasHeight/2);
 
 	auto lastUpdateTime = chrono::high_resolution_clock::now();
 
@@ -272,6 +271,7 @@ int main(int argc, char ** argv)
 
 	}
 
+	canvas->freeCanvasResources();
 	free_canvas_resources();
 	Brush::freeStaticResources();
 	UI::free_ui_resources();
