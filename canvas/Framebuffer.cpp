@@ -65,7 +65,7 @@ FrameBuffer::FrameBuffer(ImageFormat type_, unsigned int width_, unsigned int he
 	glBindTexture(GL_TEXTURE_2D, backingTextureId);
 
 	if(type == ImageFormat::FMT_RGBA) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	}
 	else if (type == ImageFormat::FMT_RG) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, nullptr);
@@ -112,7 +112,7 @@ void FrameBuffer::bindTexture() const
 void FrameBuffer::getTexureData(void * outputBuffer) const
 {
 	if(type == ImageFormat::FMT_RGBA) {
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, GL_UNSIGNED_BYTE, outputBuffer);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA8, GL_UNSIGNED_BYTE, outputBuffer);
 	}
 	else if (type == ImageFormat::FMT_RG) {
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_UNSIGNED_BYTE, outputBuffer);
@@ -127,7 +127,7 @@ void FrameBuffer::clear() const
 	if(GLAD_GL_ARB_clear_texture) {
 		if(type == ImageFormat::FMT_RGBA) {
 			uint32_t colour = 0x00ffffff;
-			glClearTexImage(backingTextureId, 0, GL_SRGB8_ALPHA8, GL_UNSIGNED_BYTE, &colour);
+			glClearTexImage(backingTextureId, 0, GL_RGBA8, GL_UNSIGNED_BYTE, &colour);
 		}
 		else if (type == ImageFormat::FMT_RG) {
 			uint16_t colour = 0x00ff;

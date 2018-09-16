@@ -82,7 +82,7 @@ void Canvas::draw() {
 						ops.push_back(op);
 					}
 
-					if(layer == activeLayer && penDown && block.hasStrokeData) {
+					if(layer == activeLayer && block.hasStrokeData) {
 						// Stroke must be overlayed
 						Op op;
 						op.opType = 8;
@@ -123,7 +123,7 @@ void Canvas::draw() {
 			Op op = {};
 			ops.push_back(op);
 
-			if(penDown && block.hasStrokeData) {
+			if(block.hasStrokeData) {
 				canvasResources.uniformData.ops[0].opType = 7;
 
 				memcpy(&canvasResources.uniformData.ops[1], ops.data(), (ops.size() > 63 ? 63 : ops.size()) * sizeof(Op));

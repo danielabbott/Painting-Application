@@ -99,11 +99,11 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 				float strokeImageHeight = image_block_size() / (float)canvasHeight;
 
 
-				if(activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
+				if (activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
 					glUniform4f(canvasResources.strokeMergeCoordsLocationRGBA, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
 					glUniform1f(canvasResources.strokeMergeIndexLocationRGBA, block.indexOf(activeLayer));
 				}
-				else if(activeLayer->imageFormat == ImageFormat::FMT_RG) {
+				else if (activeLayer->imageFormat == ImageFormat::FMT_RG) {
 					glUniform4f(canvasResources.strokeMergeCoordsLocationRG, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
 					glUniform1f(canvasResources.strokeMergeIndexLocationRG, block.indexOf(activeLayer));
 				}

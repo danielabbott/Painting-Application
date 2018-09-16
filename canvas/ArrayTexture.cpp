@@ -27,7 +27,7 @@ ArrayTexture::ArrayTexture(ImageFormat type_, unsigned int wh, unsigned int imag
 
 	if(GLAD_GL_ARB_texture_storage) {
 		if(type == ImageFormat::FMT_RGBA) {
-			glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_SRGB8_ALPHA8, widthHeight, widthHeight, imageCount);
+			glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, widthHeight, widthHeight, imageCount);
 		}
 		else if(type == ImageFormat::FMT_RG) {
 			glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RG8, widthHeight, widthHeight, imageCount);
@@ -41,7 +41,7 @@ ArrayTexture::ArrayTexture(ImageFormat type_, unsigned int wh, unsigned int imag
 	}
 	else {
 		if(type == ImageFormat::FMT_RGBA) {
-	    	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_SRGB8_ALPHA8, widthHeight, widthHeight, imageCount, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	    	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, widthHeight, widthHeight, imageCount, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		}
 		else if (type == ImageFormat::FMT_RG) {
 	    	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RG8, widthHeight, widthHeight, imageCount, 0, GL_RG, GL_UNSIGNED_BYTE, NULL);
