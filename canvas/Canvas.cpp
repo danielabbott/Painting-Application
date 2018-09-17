@@ -153,6 +153,7 @@ bool Canvas::onClicked(unsigned int button, unsigned int x, unsigned int y)
 void Canvas::drawStroke(int canvasXcoord, int canvasYcoord, float pressure, unsigned int size, float alphaMultiply)
 {
 	// TODO: If brush is not textured and covers entire image block then set strokeDataFillsBlock to true and don't fill
+	// remember to account for hardness setting
 
 	glm::mat4 m = 
 		glm::ortho(0.0f, (float)canvasWidth, (float)canvasHeight, 0.0f)
@@ -216,6 +217,10 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 
 
 	bind_shader_program(testBrush.shaderProgram);
+
+	// Hardness value is divided by 2 because the hardness value in the shader is ranged 0-0.5 whereas
+	// the hardness value in the brush struct is ranged 0-1
+	glUniform1f(testBrush.hardnessUniformLocation, testBrush.hardness / 2.0f);
 
 
 	glEnable(GL_BLEND);

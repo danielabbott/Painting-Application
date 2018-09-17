@@ -12,6 +12,7 @@ struct Brush {
 	float colour[4] = {0,0,0,1};
 
 	float opacity = 1;
+	float hardness = 0.9f; // 0 to 1
 
 	enum class BlendMode {
 		MAX, // Used for simple brushes
@@ -21,9 +22,14 @@ struct Brush {
 	BlendMode blendMode = BlendMode::MAX;
 
 	GLuint shaderProgram;
-	GLint matrixUniformLocation;
+
+	// Guaranteed to be valid
 	GLint strokeAlphaUniformLocation;
+
+	// These could be invalid (-1), in this case they should not be used
+	GLint matrixUniformLocation;
 	GLint seedUniformLocation;
+	GLint hardnessUniformLocation;
 
 	// GLuint texture;
 

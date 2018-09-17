@@ -29,6 +29,7 @@ void Brush::create(const char * fragmentShaderFile)
 	}
 
 	seedUniformLocation = glGetUniformLocation(shaderProgram, "seed");
+	hardnessUniformLocation = glGetUniformLocation(shaderProgram, "hardness");
 
 	GLint uniLoc = glGetUniformLocation(shaderProgram, "brushTexture");
 	if(uniLoc != -1) {
