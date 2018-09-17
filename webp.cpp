@@ -25,8 +25,8 @@ string webpLibraryFile = "webp.dll";
 static inline void load_so()
 {
 	HINSTANCE dll = LoadLibrary(webpLibraryFile.c_str());
-	if(!so) {
-		dll = LoadLibrary("webp.dll", RTLD_LAZY);
+	if(!dll) {
+		dll = LoadLibrary("webp.dll");
 		if(!dll) {
 			throw runtime_error("'" + webpLibraryFile + "' could not be loaded"); 
 		}
