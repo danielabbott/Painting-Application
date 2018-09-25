@@ -3,8 +3,6 @@
 #include <string>
 #include <ArrayTexture.h> // For ImageFormat enum
 
-// Layers are stored in a fixed-size array in Canvas.cpp
-
 struct Layer {
 	enum class Type {
 		LAYER, LAYER_GROUP
@@ -25,10 +23,6 @@ struct Layer {
 	Layer * firstChild = nullptr;
 	Layer * next = nullptr; // The layer above
 	Layer * parent = nullptr;
-
-	// Index into layersRGBA, layerRG, or layersR in ImageBlock
-	// TODO: Maybe this won't be the same across all image blocks - save memory
-	unsigned int imageFormatSpecificIndex = -1;
 
 	Layer() {}
 	Layer(std::string name_) : type(Type::LAYER), name(name_) {}

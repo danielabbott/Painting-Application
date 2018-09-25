@@ -3,6 +3,7 @@
 #include <FrameBuffer.h>
 #include <deque>
 #include <Brush.h>
+#include <Layer.h>
 
 // An image block is a 256x256 texture/framebuffer that stores image data for that region on all layers
 
@@ -32,7 +33,7 @@ public:
 
 	// Information about this image block on one particular layer
 	struct LayerData {
-		unsigned int layer; // Index into global layers std::vector
+		Layer * layer;
 
 		enum class DataType {
 			SOLID_COLOUR,
@@ -40,16 +41,27 @@ public:
 		};
 
 		DataType dataType = DataType::SOLID_COLOUR;
-		// unsigned int arrayTextureIndex; // if dataType == ACTUAL_DATA
 
 		// If dataType == SOLID_COLOUR
 		// If this is a greyscale image then only the most and least significant bytes are used (red and alpha)
 		// If this is an alpha-only layer then only the most significant byte is used (alpha)
-		uint32_t colour;
+		uint32_t colour = 0;
 
-		ArrayTextureFrameBuffer frameBuffer;
+		ArrayTextureFrameBuffer * frameBuffer = nullptr;
 
-		LayerData(ArrayTexture & arrayTexture, unsigned int arrayTextureIndex) : frameBuffer(arrayTexture, arrayTextureIndex) {}
+		// Value only valid if != -1
+		int arrayTextureIndex = -1;
+
+		LayerData(Layer * l) : layer(l) {}
+		LayerData(Layer * l, ArrayTexture & arrayTexture, unsigned int arrayTextureIndex_) 
+		: layer(l), frameBuffer(new ArrayTextureFrameBuffer(arrayTexture, arrayTextureIndex_)), arrayTextureIndex(arrayTextureIndex_) {}
+
+		~LayerData() 
+		{
+			if(frameBuffer) {
+				delete frameBuffer;
+			}
+		}
 	};
 
 	unsigned int getDirtyMinX() const { return dirtyMinX; }
@@ -67,9 +79,7 @@ private:
 	ArrayTexture * arrayTextureRG = nullptr;
 	ArrayTexture * arrayTextureR = nullptr;
 
-	std::deque<LayerData> layersRGBA;
-	std::deque<LayerData> layersRG;
-	std::deque<LayerData> layersR;
+	std::deque<LayerData> layers;
 
 public:
 	ImageBlock(unsigned int x_, unsigned int y_, Canvas const& canvas);
@@ -88,9 +98,7 @@ public:
 	void bindTexture(Layer * layer) const;
 	void copyTo(Layer * layer);
 
-	std::deque<LayerData> const& RGBALayers() { return layersRGBA; }
-	std::deque<LayerData> const& RGLayers() { return layersRG; }
-	std::deque<LayerData> const& RLayers() { return layersR; }
+	std::deque<LayerData> const& getLayerData() { return layers; }
 
 	const ArrayTexture * getArrayTextureRGBA() { return arrayTextureRGBA; }
 	const ArrayTexture * getArrayTextureRG() { return arrayTextureRG; }

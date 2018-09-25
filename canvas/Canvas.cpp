@@ -64,6 +64,8 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 
 		// Stylus was lifted up, merge the stroke layer with the active layer and clear the stroke layer
 
+		// Bind the image-format-specific shader program and temporary framebuffer
+
 		if(activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
 			bind_shader_program(canvasResources.strokeMergeShaderProgramRGBA);
 			glUniform4f(canvasResources.strokeMergeColourLocationRGBA, canvasResources.activeColour[0], canvasResources.activeColour[1], 
@@ -93,6 +95,8 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 			if(block.hasStrokeData) {
 				block.bindTexture(activeLayer);
 
+				// Set area to merge and active layer index
+
 				float strokeImageX = (block.getX() / (float)canvasWidth);
 				float strokeImageY = 1.0f - (block.getY() + image_block_size()) / (float)canvasHeight;
 				float strokeImageWidth  = image_block_size() / (float)canvasWidth;
@@ -112,7 +116,11 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 					glUniform1f(canvasResources.strokeMergeIndexLocationR, block.indexOf(activeLayer));
 				}
 
+				// Merge stroke onto layer and store in temporary framebuffer
+
 				glDrawArrays(GL_TRIANGLES, 0, 6);
+
+				// Copy the data from the temporary framebuffer to the image block array texture
 
 				block.copyTo(activeLayer);
 

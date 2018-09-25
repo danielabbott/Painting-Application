@@ -32,10 +32,6 @@ void Canvas::draw() {
 			}
 			block.setClean();
 
-			unsigned int rgbaIndex = 0;
-			unsigned int rgIndex = 0;
-			unsigned int rIndex = 0;
-
 			assert(firstLayer);
 			Layer * layer = firstLayer;
 			vector<Op> ops;
@@ -46,15 +42,14 @@ void Canvas::draw() {
 			while(1) {
 				if(layer->type == Layer::Type::LAYER) {
 					const ImageBlock::LayerData * layerData = nullptr;
-					if(layer->imageFormat == ImageFormat::FMT_RGBA) {
-						layerData = &block.RGBALayers()[rgbaIndex++];
+					for(ImageBlock::LayerData const& ld : block.getLayerData()) {
+						if(ld.layer == layer) {
+							layerData = &ld;
+						}
 					}
-					else if(layer->imageFormat == ImageFormat::FMT_RG) {
-						layerData = &block.RGLayers()[rgIndex++];
-					}
-					else {
-						layerData = &block.RLayers()[rIndex++];
-					}
+
+					assert(layerData);
+
 
 					if(layerData->dataType == ImageBlock::LayerData::DataType::SOLID_COLOUR) {
 						if((layerData->colour >> 24) == 0xff) {
@@ -78,7 +73,7 @@ void Canvas::draw() {
 					else {
 						Op op;
 						op.opType = 2 + (int)layer->imageFormat;
-						op.colour[0] = layer->imageFormatSpecificIndex + 0.1f;
+						op.colour[0] = layerData->arrayTextureIndex + 0.1f;
 						ops.push_back(op);
 					}
 
@@ -103,7 +98,6 @@ void Canvas::draw() {
 					}
 				}
 
-
 				if(layer->firstChild) {
 					assert(layer->type == Layer::Type::LAYER);
 					layer = layer->firstChild;
@@ -120,6 +114,7 @@ void Canvas::draw() {
 					}
 				}
 			}
+
 			Op op = {};
 			ops.push_back(op);
 

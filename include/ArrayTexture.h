@@ -15,6 +15,7 @@ friend ArrayTextureFrameBuffer;
 	ImageFormat type;
 
 	// Number of framebuffers using this texture
+	// TODO: Perhaps use shared_pointer instead
 	unsigned int users = 0;
 
 public:

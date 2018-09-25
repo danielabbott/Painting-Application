@@ -1,6 +1,7 @@
 #include <ImageBlock.h>
 #include <Layer.h>
 #include <cassert>
+#include <stdexcept>
 #include <UI.h>
 #include <Canvas.h>
 #include <Shader.h>
@@ -26,18 +27,18 @@ ImageBlock::ImageBlock(unsigned int x_, unsigned int y_, Canvas const& canvas)
 		return;
 	}
 
+	// TODO replace while loops with iterators
+	// TODO only allocate memory if it is needed (new canvases get memory for one layer (initially unused). allocate more later if needed)
+
 	while(1) {
 		if(layer->type == Layer::Type::LAYER) {
 			if(layer->imageFormat == ImageFormat::FMT_RGBA) {
-				layer->imageFormatSpecificIndex = numRGBA;
 				numRGBA++;
 			}
 			else if(layer->imageFormat == ImageFormat::FMT_RG) {
-				layer->imageFormatSpecificIndex = numRG;
 				numRG++;
 			}
 			else if(layer->imageFormat == ImageFormat::FMT_R) {
-				layer->imageFormatSpecificIndex = numR;
 				numR++;
 			}
 		}
@@ -67,55 +68,80 @@ ImageBlock::ImageBlock(unsigned int x_, unsigned int y_, Canvas const& canvas)
 		if(GLAD_GL_ARB_clear_texture) {
 			arrayTextureRGBA->clear(0x00ffffff);
 		}
-
-		for(unsigned int i = 0; i < numRGBA; i++) {
-			layersRGBA.emplace_back(*arrayTextureRGBA, i);
-			LayerData & layerData = *(layersRGBA.end()-1);
-			layerData.colour = 0x00ffffff;
-
-			if(!GLAD_GL_ARB_clear_texture) {
-				layerData.frameBuffer.bindFrameBuffer();
-				glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-				glClear(GL_COLOR_BUFFER_BIT);
-			}
-		}
-
 	}
 	if(numRG) {
 		arrayTextureRG = new ArrayTexture(ImageFormat::FMT_RG, image_block_size(), numRG);
 
 		if(GLAD_GL_ARB_clear_texture) {
 			arrayTextureRG->clear(0x00ff);
-		}
-
-		for(unsigned int i = 0; i < numRG; i++) {
-			layersRG.emplace_back(*arrayTextureRG, i);
-			LayerData & layerData = *(layersRG.end()-1);
-			layerData.colour = 0x00ffffff;
-
-			if(!GLAD_GL_ARB_clear_texture) {
-				layerData.frameBuffer.bindFrameBuffer();
-				glClearColor(1.0f, 0.0f, 0, 0);
-				glClear(GL_COLOR_BUFFER_BIT);
-			}
-		}
+		}		
 	}
 	if(numR) {
 		arrayTextureR = new ArrayTexture(ImageFormat::FMT_R, image_block_size(), numR);
 
 		if(GLAD_GL_ARB_clear_texture) {
 			arrayTextureR->clear();
+		}		
+	}
+
+	numRGBA = numRG = numR = 0;
+	layer = canvas.get_first_layer();
+
+	while(1) {
+		if(layer->type == Layer::Type::LAYER) {
+			if(layer->imageFormat == ImageFormat::FMT_RGBA) {
+				layers.emplace_back(layer, *arrayTextureRGBA, numRGBA);
+				LayerData & layerData = *(layers.end()-1);
+				layerData.colour = 0x00ffffff;
+
+				if(!GLAD_GL_ARB_clear_texture) {
+					layerData.frameBuffer->bindFrameBuffer();
+					glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+					glClear(GL_COLOR_BUFFER_BIT);
+				}
+
+				numRGBA++;
+			}
+			else if(layer->imageFormat == ImageFormat::FMT_RG) {
+				layers.emplace_back(layer, *arrayTextureRG, numRG);
+				LayerData & layerData = *(layers.end()-1);
+				layerData.colour = 0x00ffffff;
+
+				if(!GLAD_GL_ARB_clear_texture) {
+					layerData.frameBuffer->bindFrameBuffer();
+					glClearColor(1.0f, 0.0f, 0, 0);
+					glClear(GL_COLOR_BUFFER_BIT);
+				}
+				numRG++;
+			}
+			else if(layer->imageFormat == ImageFormat::FMT_R) {
+				layers.emplace_back(layer, *arrayTextureR, numR);
+				LayerData & layerData = *(layers.end()-1);
+				layerData.colour = 0xff; // effect layers default to 100% intensity for every pixel
+
+				if(!GLAD_GL_ARB_clear_texture) {
+					layerData.frameBuffer->bindFrameBuffer();
+					glClearColor(0, 0, 0, 0);
+					glClear(GL_COLOR_BUFFER_BIT);
+				}
+				numR++;
+			}
 		}
 
-		for(unsigned int i = 0; i < numR; i++) {
-			layersR.emplace_back(*arrayTextureR, i);
-			LayerData & layerData = *(layersR.end()-1);
-			layerData.colour = 0x00;
 
-			if(!GLAD_GL_ARB_clear_texture) {
-				layerData.frameBuffer.bindFrameBuffer();
-				glClearColor(0, 0, 0, 0);
-				glClear(GL_COLOR_BUFFER_BIT);
+		if(layer->firstChild) {
+			assert(layer->type == Layer::Type::LAYER);
+			layer = layer->firstChild;
+		}
+		else {
+			if(layer->next) {
+				layer = layer->next;
+			}
+			else if(layer->parent && layer->parent->next) {
+				layer = layer->parent->next;
+			}
+			else {
+				break;
 			}
 		}
 	}
@@ -124,11 +150,9 @@ ImageBlock::ImageBlock(unsigned int x_, unsigned int y_, Canvas const& canvas)
 
 ImageBlock::~ImageBlock()
 {
-	// Clear deques to run deconstructors so that users field in array texture objects is decreased to 0
+	// Clear list to run deconstructors so that users field in array texture objects is decreased to 0
 	// To prevent an assertion failure in the deconstructors of arrayTextureR* 
-	layersRGBA.clear();
-	layersRG.clear();
-	layersR.clear();
+	layers.clear();
 
 	delete arrayTextureR;
 	delete arrayTextureRG;
@@ -138,40 +162,36 @@ ImageBlock::~ImageBlock()
 int ImageBlock::indexOf(Layer * layer)
 {
 	assert(layer);
-	return layer->imageFormatSpecificIndex;
+
+	unsigned int i = 0;
+	for(LayerData const& ld : layers) {
+		if(ld.layer == layer) {
+			return i;
+		}
+		i++;
+	}
+	
+	return -1;
 }
 
 void ImageBlock::bindFrameBuffer(Layer * layer)
 {
 	assert(layer);
 
-	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
-		layersRGBA[layer->imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
-		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
+	int index = indexOf(layer);
+	if(index == -1) {
+		throw runtime_error("Attempted to bind framebuffer of layer with no video memory");
 	}
-	else if(layer->imageFormat == ImageFormat::FMT_RG) {
-		layersRG[layer->imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
-		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-	}
-	else if(layer->imageFormat == ImageFormat::FMT_R) {
-		layersR[layer->imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
-		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-	}
+
+	layers[index].frameBuffer->bindFrameBuffer();
+	layers[index].dataType = LayerData::DataType::ACTUAL_DATA;
 }
 
 void ImageBlock::bindTexture(Layer * layer) const
 {
 	assert(layer);
 
-	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
-		arrayTextureRGBA->bind();
-	}
-	else if(layer->imageFormat == ImageFormat::FMT_RG) {
-		arrayTextureRG->bind();
-	}
-	else if(layer->imageFormat == ImageFormat::FMT_R) {
-		arrayTextureR->bind();
-	}
+	arrayTextureRGBA->bind();	
 }
 
 
@@ -179,20 +199,21 @@ void ImageBlock::copyTo(Layer * layer)
 {
 	assert(layer);
 
+	int index = indexOf(layer);
+	if(index == -1) {
+		throw runtime_error("Attempted to copy to layer with no video memory");
+	}
+
+	layers[index].dataType = LayerData::DataType::ACTUAL_DATA;
+	
 	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
-		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-		arrayTextureRGBA->copy(layer->imageFormatSpecificIndex);
+		arrayTextureRGBA->copy(index);
 	}
 	else if(layer->imageFormat == ImageFormat::FMT_RG) {
-		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-		arrayTextureRG->copy(layer->imageFormatSpecificIndex);
-	}
-	else if(layer->imageFormat == ImageFormat::FMT_R) {
-		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-		arrayTextureR->copy(layer->imageFormatSpecificIndex);
+		arrayTextureRG->copy(index);
 	}
 	else {
-		assert(0);
+		arrayTextureR->copy(index);
 	}
 }
 
@@ -200,17 +221,21 @@ void ImageBlock::uploadImage(Layer * layer, unsigned int x, unsigned int y, unsi
 {
 	assert(layer);
 
+	int index = indexOf(layer);
+	if(index == -1) {
+		throw runtime_error("Attempted to upload to layer with no video memory");
+	}
+
+	layers[index].dataType = LayerData::DataType::ACTUAL_DATA;
+	
 	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
-		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-		arrayTextureRGBA->uploadImage(layer->imageFormatSpecificIndex, x, y, width, height, data, stride, sourceType);
+		arrayTextureRGBA->uploadImage(index, x, y, width, height, data, stride, sourceType);
 	}
 	else if(layer->imageFormat == ImageFormat::FMT_RG) {
-		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-		arrayTextureRG->uploadImage(layer->imageFormatSpecificIndex, x, y, width, height, data, stride, sourceType);
+		arrayTextureRG->uploadImage(index, x, y, width, height, data, stride, sourceType);
 	}
-	else if(layer->imageFormat == ImageFormat::FMT_R) {
-		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::ACTUAL_DATA;
-		arrayTextureR->uploadImage(layer->imageFormatSpecificIndex, x, y, width, height, data, stride, sourceType);
+	else {
+		arrayTextureR->uploadImage(index, x, y, width, height, data, stride, sourceType);
 	}
 }
 
@@ -218,45 +243,47 @@ void ImageBlock::fillLayer(Layer * layer, uint32_t colour)
 {
 	assert(layer);
 
-	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
-		layersRGBA[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::SOLID_COLOUR;
-		layersRGBA[layer->imageFormatSpecificIndex].colour = colour;
+	int index = indexOf(layer);
+	if(index == -1) {
+		throw runtime_error("Attempted to fill layer with no video memory");
+	}
 
+	layers[index].colour = colour;
+
+	layers[index].dataType = LayerData::DataType::SOLID_COLOUR;
+	
+	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
 		if(GLAD_GL_ARB_clear_texture) {
-			arrayTextureRGBA->clear(layer->imageFormatSpecificIndex, 1, colour);
+			arrayTextureRGBA->clear(index, 1, colour);
 		}
 		else {
-			layersRGBA[layer->imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
+			layers[index].frameBuffer->bindFrameBuffer();
 			glClearColor((colour & 0xff) / 255.0f, ((colour >> 8) & 0xff) / 255.0f, ((colour >> 16) & 0xff) / 255.0f, ((colour >> 24) & 0xff) / 255.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 	}
 	else if(layer->imageFormat == ImageFormat::FMT_RG) {
-		layersRG[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::SOLID_COLOUR;
-		layersRG[layer->imageFormatSpecificIndex].colour = colour;
-
 		if(GLAD_GL_ARB_clear_texture) {
-			arrayTextureRG->clear(layer->imageFormatSpecificIndex, 1, colour);
+			arrayTextureRG->clear(index, 1, colour);
 		}
 		else {
-			layersRG[layer->imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
+			layers[index].frameBuffer->bindFrameBuffer();
 			glClearColor((colour & 0xff) / 255.0f, ((colour >> 8) & 0xff) / 255.0f, 0, 0);
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 	}
 	else if(layer->imageFormat == ImageFormat::FMT_R) {
-		layersR[layer->imageFormatSpecificIndex].dataType = LayerData::DataType::SOLID_COLOUR;
-		layersR[layer->imageFormatSpecificIndex].colour = colour;
-
 		if(GLAD_GL_ARB_clear_texture) {
-			arrayTextureR->clear(layer->imageFormatSpecificIndex, 1, colour);
+			arrayTextureR->clear(index, 1, colour);
 		}
 		else {
-			layersR[layer->imageFormatSpecificIndex].frameBuffer.bindFrameBuffer();
+			layers[index].frameBuffer->bindFrameBuffer();
 			glClearColor((colour & 0xff) / 255.0f, 0, 0, 0);
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 	}
+
+	
 }
 
 bool ImageBlock::dirtyRegion(int x_, int y_, unsigned int width, unsigned int height)

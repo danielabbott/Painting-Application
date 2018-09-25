@@ -298,7 +298,6 @@ Canvas::Canvas(unsigned int x, unsigned int y, unsigned int width, unsigned int 
 
 	layers[0].type = Layer::Type::LAYER;
 	layers[0].name = "bottom layer";
-	layers[0].imageFormatSpecificIndex = 0;
 	// layers[1].type = Layer::Type::LAYER;
 	// layers[1].name = "top layer";
 	// layers[1].imageFormatSpecificIndex = 1;
