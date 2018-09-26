@@ -34,10 +34,14 @@ public:
 	// data MUST NOT be null
 	// call bind() first
 	void upload(void * data, unsigned int firstImage, unsigned int imagesToFill) const;
-	void uploadImage(unsigned int layerIndex, unsigned int x, unsigned int y, unsigned int width, unsigned int height, void * data, unsigned int stride, ImageFormat sourceType) const;
+	void uploadImage(unsigned int index, unsigned int x, unsigned int y, unsigned int width, unsigned int height, void * data, unsigned int stride, ImageFormat sourceType) const;
 
 	// Source data is the bound framebuffer
 	// Assumes the bound framebuffer is the same width and height as this array texture
-	void copy(unsigned int startIndex) const;
+
+	void copy(unsigned int index) const;
+
+	// For copying a subsection of the image
+	void copy(unsigned int index, unsigned int x, unsigned int y, unsigned int w, unsigned int h) const;
 
 };

@@ -197,6 +197,12 @@ void ImageBlock::bindTexture(Layer * layer) const
 
 void ImageBlock::copyTo(Layer * layer)
 {
+	copyTo(layer, 0, 0, image_block_size(), image_block_size());
+}
+
+
+void ImageBlock::copyTo(Layer * layer, unsigned int x, unsigned int y, unsigned int w, unsigned int h)
+{
 	assert(layer);
 
 	int index = indexOf(layer);
@@ -207,13 +213,13 @@ void ImageBlock::copyTo(Layer * layer)
 	layers[index].dataType = LayerData::DataType::ACTUAL_DATA;
 	
 	if(layer->imageFormat == ImageFormat::FMT_RGBA) {
-		arrayTextureRGBA->copy(index);
+		arrayTextureRGBA->copy(index, x, y, w, h);
 	}
 	else if(layer->imageFormat == ImageFormat::FMT_RG) {
-		arrayTextureRG->copy(index);
+		arrayTextureRG->copy(index, x, y, w, h);
 	}
 	else {
-		arrayTextureR->copy(index);
+		arrayTextureR->copy(index, x, y, w, h);
 	}
 }
 

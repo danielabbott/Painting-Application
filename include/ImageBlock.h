@@ -5,7 +5,7 @@
 #include <Brush.h>
 #include <Layer.h>
 
-// An image block is a 256x256 texture/framebuffer that stores image data for that region on all layers
+// An image block is a square texture/framebuffer that stores image data for that region on all layers
 
 class Layer;
 class Canvas;
@@ -23,7 +23,7 @@ class ImageBlock {
 	unsigned int dirtyHeight = image_block_size();
 
 public:
-	// Keeps track of whether anything has changed in this image bock since the last redraw..
+	// Keeps track of whether anything has changed in this image bock since the last redraw.
 	bool dirty = true;
 
 	// Used for keeping track of which image blocks have been drawn on during the current stroke
@@ -97,6 +97,7 @@ public:
 	void bindFrameBuffer(Layer * layer);
 	void bindTexture(Layer * layer) const;
 	void copyTo(Layer * layer);
+	void copyTo(Layer * layer, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
 
 	std::deque<LayerData> const& getLayerData() { return layers; }
 

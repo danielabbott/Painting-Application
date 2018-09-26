@@ -97,10 +97,19 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 
 				// Set area to merge and active layer index
 
+				// TODO: Merge only dirty region then copy only dirty region
+
+				// float strokeImageX = (((block.getX() + block.getDirtyMinX()) / (float)canvasWidth) * 2.0f) - 1.0f;
+				// float strokeImageY = (((1.0f - (block.getY() + block.getDirtyMinY() + block.getDirtyHeight()) / (float)canvasHeight) * 2.0f) - 1.0f);
+				// float strokeImageWidth  = ((block.getDirtyWidth() / (float)canvasWidth) * 2.0f);
+				// float strokeImageHeight = ((block.getDirtyHeight() / (float)canvasHeight) * 2.0f);
+
 				float strokeImageX = (block.getX() / (float)canvasWidth);
 				float strokeImageY = 1.0f - (block.getY() + image_block_size()) / (float)canvasHeight;
 				float strokeImageWidth  = image_block_size() / (float)canvasWidth;
 				float strokeImageHeight = image_block_size() / (float)canvasHeight;
+
+
 
 
 				if (activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
@@ -122,7 +131,12 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 
 				// Copy the data from the temporary framebuffer to the image block array texture
 
+				// TODO: Copy only dirty region
+
+				// block.copyTo(activeLayer, block.getDirtyMinX(), block.getDirtyMinY(), block.getDirtyWidth(), block.getDirtyHeight());
+
 				block.copyTo(activeLayer);
+
 
 				block.hasStrokeData = false;
 			}

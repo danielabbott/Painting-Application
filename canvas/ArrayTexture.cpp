@@ -96,10 +96,19 @@ void ArrayTexture::upload(void * data, unsigned int firstImage, unsigned int ima
 
 // When a new layer is added or a layer is deleted, a new array texture is created for each layer and the data is copied across
 
-void ArrayTexture::copy(unsigned int startIndex) const
+void ArrayTexture::copy(unsigned int index) const
 {
 	bind();
-	glCopyTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, startIndex, 0, 0, widthHeight, widthHeight);
+	glCopyTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, index, 0, 0, widthHeight, widthHeight);
+}
+
+void ArrayTexture::copy(unsigned int index, unsigned int x, unsigned int y, unsigned int w, unsigned int h) const
+{
+	assert(x + w <= widthHeight);
+	assert(y + h <= widthHeight);
+
+	bind();
+	glCopyTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, x, widthHeight - y - h, index, x, widthHeight - y - h, w, h);
 }
 
 ArrayTexture::~ArrayTexture()

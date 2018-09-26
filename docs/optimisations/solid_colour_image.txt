@@ -1,0 +1,3 @@
+Images within an image block might be a uniform colour (all pixels hold the same value).
+In this case, accessing every pixel in the image data is wasteful as each pixel is the same.
+In this case (when ImageBlock::LayerData::dataType == ImageBlock::LayerData::DataType::SOLID_COLOUR) the image data is not used (though the image data is still filled with the colour value so that it is ready when needed)

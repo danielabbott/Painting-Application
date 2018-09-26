@@ -1,0 +1,2 @@
+Image blocks keep track of the area within them that is dirty (dirtyMinX, dirtyMinY, dirtyWidth, dirtyHeight)
+This is to prevent the entire image block having to be redrawn to the final canvas texture when only a few (close together) pixels have been modified.

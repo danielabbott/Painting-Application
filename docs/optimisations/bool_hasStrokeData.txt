@@ -1,0 +1,2 @@
+When the user is drawing on the canvas, the application keeps track of which image blocks have been drawn on.
+This enables the application to only access stroke data for image blocks which have any, both when displaying the stroke as it is drawn and when merging the stroke down onto the active layer.

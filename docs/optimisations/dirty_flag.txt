@@ -1,0 +1,7 @@
+Image blocks store a 'dirty' boolean to track whether any state or image data has changed in the image block (on any layer) since the last canvas redraw.
+When the canvas is redrawn, only 'dirty' image blocks are redrawn onto the canvas texture.
+The entire canvas texture is then drawn to the window, regardless of how many image blocks are dirty.
+
+A global dirty flag (canvasDirty) is stored which represents the dirty state of the entire canvas. 
+This is set to true whenever any image block is made dirty.
+The final canvas texture is only modified when canvasDirty is true. 
