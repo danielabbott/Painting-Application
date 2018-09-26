@@ -47,12 +47,12 @@ For Windows:
 
 0. Set up MinGW for compiling C++ or use Visual Studio (you will have to set up a project yourself)
 
-1. Run windows_install.bat
+1. Run windowsbuild.bat
 
 .dll files and header files are included
 
 
-** To debug with gdb on windows, run gdb ./paint
+** To debug with gdb on windows (when using mingw), run gdb ./paint
 Before running the program, type 
 	break abort
 into the gdb console so that gdb will stop execution when an assertation fails. 
