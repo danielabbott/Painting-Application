@@ -1,12 +1,9 @@
 #include <FrameBuffer.h>
 #include <stdexcept>
 #include <cassert>
+#include <Window.h>
 
 using namespace std;
-
-namespace UI {
-	void get_window_dimensions(unsigned int & windowWidth, unsigned int & windowHeight);
-}
 
 
 ArrayTextureFrameBuffer::ArrayTextureFrameBuffer(ArrayTexture & arrayTexture_, unsigned int arrayTextureIndex)
@@ -163,7 +160,7 @@ FrameBuffer::~FrameBuffer()
 void bind_default_framebuffer()
 {
 	unsigned int windowWidth, windowHeight;
-	UI::get_window_dimensions(windowWidth, windowHeight);
+	get_window_dimensions(windowWidth, windowHeight);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, windowWidth, windowHeight);

@@ -13,5 +13,5 @@ void main()
 {
 	gl_Position = matrix * vec4(position.xy, 0, 1);
 	pass_colour = colour;
-	pass_textureCoordinates = textureCoordinates;
+	pass_textureCoordinates = textureCoordinates / 256.0;
 }

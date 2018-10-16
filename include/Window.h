@@ -42,3 +42,5 @@ typedef void (* scroll_callback) (unsigned int, unsigned int, int, int);
 void assign_scroll_callback(scroll_callback callback);
 
 void get_opengl_version(unsigned int & major, unsigned int & minor);
+
+void get_window_dimensions(unsigned int & width, unsigned int & height);

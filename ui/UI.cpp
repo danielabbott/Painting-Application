@@ -23,6 +23,15 @@ static unsigned int rootContainer2X, rootContainer2Y;
 static unsigned int windowWidth = 300;
 static unsigned int windowHeight = 200;
 
+unsigned int fontSize = 14;
+unsigned int fontVerticalPad = 2;
+
+void set_font_size(unsigned int newSize)
+{
+	fontSize = newSize;
+	fontVerticalPad = fontSize / 6;
+}
+
 void setAbsWindowCoords(Container * c, unsigned int x=0, unsigned int y=0)
 {
 	x += c->getActualX();
@@ -641,7 +650,7 @@ void initialise_ui()
 
 	glVertexAttribIPointer(0, 2, GL_UNSIGNED_SHORT, sizeof(Vertex), (void *)offsetof(Vertex, x));
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_SHORT, GL_TRUE, sizeof(Vertex), (void *)offsetof(Vertex, textureX));
+	glVertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, textureX));
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), (void *)offsetof(Vertex, red));
 	glEnableVertexAttribArray(2);
@@ -649,7 +658,7 @@ void initialise_ui()
 	// Font
 
 	initialise_font_loader();
-	font = new Font("res/Roboto-Regular.ttf", 12);
+	font = new Font("res/Roboto-Regular.ttf", fontSize);
 	font->load_font_atlas(0, asciiAtlas);
 
 
@@ -693,6 +702,8 @@ void Container::draw(vector<Canvas *> & canvases, unsigned int xOffset, unsigned
 		return;
 	}
 
+	unsigned int texMul = asciiAtlas.largeTexture ? 1 : 2;
+
 	xOffset += actualX;
 	yOffset += actualY;
 
@@ -700,7 +711,7 @@ void Container::draw(vector<Canvas *> & canvases, unsigned int xOffset, unsigned
 
 	uint32_t colour = getBackGroundColour();
 	if(colour & 0xff000000) {
-		add_quad(xOffset, yOffset, actualWidth, actualHeight, nullGlyph.x*256, nullGlyph.y*256, 0, 0, colour);
+		add_quad(xOffset, yOffset, actualWidth, actualHeight, nullGlyph.x*texMul, nullGlyph.y*texMul, 0, 0, colour);
 	}
 
 	for(Widget * widget : widgets) {
@@ -715,7 +726,7 @@ void Container::draw(vector<Canvas *> & canvases, unsigned int xOffset, unsigned
 
 		colour = widget->getBackGroundColour();
 		if(colour & 0xff000000) {
-			add_quad(widget->actualX + xOffset, widget->actualY + yOffset, widget->actualWidth, widget->actualHeight, nullGlyph.x*256, nullGlyph.y*256, 0, 0, colour);
+			add_quad(widget->actualX + xOffset, widget->actualY + yOffset, widget->actualWidth, widget->actualHeight, nullGlyph.x*texMul, nullGlyph.y*texMul, 0, 0, colour);
 		}
 
 		string const& text = widget->getText();
@@ -748,22 +759,23 @@ void Container::draw(vector<Canvas *> & canvases, unsigned int xOffset, unsigned
 				textX = widget->actualX*64 + widget->actualWidth*64 - 2*64 - textWidth;
 			}
 
-			unsigned int textY;
+			unsigned int textY; // Y coordinate of baseline
 			if(widget->topBottomTextAlign == TopBottomAlignment::TOP) {
-				textY = widget->actualY + 14;
+				textY = widget->actualY + fontVerticalPad + fontSize;
 			}
 			else if(widget->topBottomTextAlign == TopBottomAlignment::TOP_BOTTOM_CENTRE) {
-				textY = widget->actualY + widget->actualHeight/2 + 14/2 - 4;
+				textY = widget->actualY + widget->actualHeight - fontVerticalPad - (widget->actualHeight-fontVerticalPad*2-fontSize)/2;
 			}
 			else {
-				textY = widget->actualY + widget->actualHeight - 2;
+				textY = widget->actualY + widget->actualHeight - fontVerticalPad;
 			}
+			textY -= fontVerticalPad/2;
 
 			// TODO UTF-8 support
 			for(char c : text) {
 				if(c > 0/* && c < 128*/) {
 					Font::FontGlyph const& glyph = asciiAtlas.glyphs[(int)c];
-					add_quad(textX / 64 + glyph.bitmapLeft + xOffset, textY - glyph.bitmapTop + yOffset, glyph.w, glyph.h, glyph.x*256, glyph.y*256, glyph.w*256, glyph.h*256, textColour);
+					add_quad(textX / 64 + glyph.bitmapLeft + xOffset, textY - glyph.bitmapTop + yOffset, glyph.w, glyph.h, glyph.x*texMul, glyph.y*texMul, glyph.w*texMul, glyph.h*texMul, textColour);
 					textX += glyph.advanceX;
 				}
 				else {

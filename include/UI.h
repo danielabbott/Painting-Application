@@ -275,6 +275,9 @@ public:
 
 void initialise_ui();
 
+// Default 14
+void set_font_size(unsigned int newSize);
+
 // Returns true if the UI was redrawn
 bool draw_ui(bool forceRedraw);
 
