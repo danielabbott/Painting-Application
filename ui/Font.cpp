@@ -1,6 +1,7 @@
 #include <Font.h>
 #include <stdexcept>
 #include <stb_rect_pack.h>
+#include <iostream>
 
 #define STB_RECT_PACK_IMPLEMENTATION
 #include <stb_rect_pack.h>

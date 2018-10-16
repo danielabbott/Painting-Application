@@ -168,12 +168,31 @@ int main(int argc, char ** argv)
 
 			clog << "Webp encoder/decoder implementation search path set to " << webpLibraryFile << endl;
 		}
+		else if (argv[i][0] == '-' 
+			&& (argv[i][1] == 'f' || argv[i][1] == 'F'))
+		{
+			unsigned int fontSize = (unsigned int) strtoul(&argv[i][2], nullptr, 10);
+
+			if(fontSize < 8) {
+				clog << "Invalid font size. Using size 8" << endl;
+				fontSize = 8;
+			}
+			else if(fontSize > 28) {
+				clog << "Invalid font size. Using size 28" << endl;
+				fontSize = 28;
+			}
+			else {
+				clog << "Using font size " << fontSize << endl;
+			}
+			UI::set_font_size(fontSize);
+		}
+
 		else {
 			cout<<&argv[i][2]<<endl;
 		}
 	}
 
-	create_window(640, 480, glVer, forceBitDepth);
+	create_window(1024, 768, glVer, forceBitDepth);
 	create_opengl_timer();
 
 	try {
