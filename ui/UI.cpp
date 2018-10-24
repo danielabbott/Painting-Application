@@ -25,11 +25,13 @@ static unsigned int windowHeight = 200;
 
 unsigned int fontSize = 14;
 unsigned int fontVerticalPad = 2;
+unsigned int fontHorizontalPad = 4;
 
 void set_font_size(unsigned int newSize)
 {
 	fontSize = newSize;
 	fontVerticalPad = fontSize / 6;
+	fontHorizontalPad = fontSize / 3;
 }
 
 void setAbsWindowCoords(Container * c, unsigned int x=0, unsigned int y=0)
@@ -333,7 +335,7 @@ void Container::bake()
 	else if(layoutManager == LayoutManager::FLOW_DOWN) {
 		getDimensions(w, h);
 
-		unsigned int widgetY = 0;
+		unsigned int widgetY = 0, maxWidth = 0;
 		for(Widget * widget : widgets) {
 			widget->actualX = 0;
 			widget->actualY = widgetY;
@@ -343,14 +345,27 @@ void Container::bake()
 			widget->actualHeight += WIDGET_PADDING;
 
 			// All widgets are the same width
-			widget->actualWidth = w;
+			if(w) {
+				widget->actualWidth = w;
+			}
+			else if (maxWidth < widget->actualWidth) {
+				maxWidth = widget->actualWidth;
+			}
+		}
+
+		if(!w) {
+			w = maxWidth;
+
+			for(Widget * widget : widgets) {
+				widget->actualWidth = w;
+			}
 		}
 	}
 
 	else if(layoutManager == LayoutManager::FLOW_ACCROSS) {
 		getDimensions(w, h);
 
-		unsigned int widgetX = 0;
+		unsigned int widgetX = 0, maxHeight = 0;
 		for(Widget * widget : widgets) {
 			widget->actualX = widgetX;
 			widget->actualY = 0;
@@ -360,7 +375,20 @@ void Container::bake()
 			widget->actualWidth += WIDGET_PADDING;
 
 			// All widgets are the same height
-			widget->actualHeight = h;
+			if(h) {
+				widget->actualHeight = h;
+			}
+			else if (maxHeight < widget->actualHeight) {
+				maxHeight = widget->actualHeight;
+			}
+		}
+
+		if(!h) {
+			h = maxHeight;
+
+			for(Widget * widget : widgets) {
+				widget->actualHeight = h;
+			}
 		}
 	}
 }

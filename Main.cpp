@@ -177,9 +177,9 @@ int main(int argc, char ** argv)
 				clog << "Invalid font size. Using size 8" << endl;
 				fontSize = 8;
 			}
-			else if(fontSize > 28) {
-				clog << "Invalid font size. Using size 28" << endl;
-				fontSize = 28;
+			else if(fontSize > 32) {
+				clog << "Invalid font size. Using size 32" << endl;
+				fontSize = 32;
 			}
 			else {
 				clog << "Using font size " << fontSize << endl;
@@ -207,11 +207,8 @@ int main(int argc, char ** argv)
 
 
 	InputToggleButton inp = InputToggleButton();
-	MyButton button1 = MyButton("press me");
-	MyButton button2 = MyButton("or me");
-	MyButton button3 = MyButton("or maybe this very long button right here");
-	MyButton button4 = MyButton("exclamation marks are broken > ! <");
-	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &inp, &button1, &button2, &button3, &button4 }, 1, 0, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_ACCROSS);
+	MyButton button1 = MyButton("Sample button");
+	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &inp, &button1 }, 1, 0, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_ACCROSS);
 
 	// UI::Label lbl = UI::Label("hiya");
 	MyButton b1 = MyButton("1");
@@ -245,7 +242,7 @@ int main(int argc, char ** argv)
 
 	layerLabels.insert(layerLabels.begin(), new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::LayoutManager::NONE));
 	layerLabels.push_back(new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::LayoutManager::NONE));
-	UI::Container layersContainer = UI::Container(layerLabels, 0, 1, 100, 0, 0xff202020, UI::Container::LayoutManager::FLOW_DOWN);
+	UI::Container layersContainer = UI::Container(layerLabels, 0, 1, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_DOWN);
 
 
 

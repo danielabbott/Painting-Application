@@ -6,6 +6,10 @@ using namespace std;
 
 namespace UI {
 
+extern unsigned int fontSize;
+extern unsigned int fontVerticalPad;
+extern unsigned int fontHorizontalPad;
+
 
 Label::Label(std::string text_, LeftRightAlignment leftRightTextAlign_, TopBottomAlignment topBottomTextAlign_) : Label(text_, 0, 0, leftRightTextAlign_, topBottomTextAlign_) {}
 
@@ -13,7 +17,7 @@ extern Font::Atlas asciiAtlas;
 Label::Label(string text_, unsigned int x, unsigned int y, LeftRightAlignment leftRightTextAlign_, TopBottomAlignment topBottomTextAlign_)
 : Widget(x, y, 0, 0, leftRightTextAlign_, topBottomTextAlign_), widgetText(text_)
 {
-	textWidth = 4*64; // 4px horizontal padding
+	textWidth = fontHorizontalPad*2*64; // add padding to sides of widget.
 	for(char c : widgetText) {
 		if(c > 0) {
 			Font::FontGlyph const& glyph = asciiAtlas.glyphs[(int)c];
@@ -23,15 +27,12 @@ Label::Label(string text_, unsigned int x, unsigned int y, LeftRightAlignment le
 			textWidth += 640;
 		}
 	}
-	textWidth /= 64;
+	textWidth = (textWidth + 63) / 64;
 }
 
 std::string const& Label::getText() { 
 	return widgetText;
 }
-
-extern unsigned int fontSize;
-extern unsigned int fontVerticalPad;
 
 void Label::getDimensions(unsigned int & width, unsigned int & height)
 {
