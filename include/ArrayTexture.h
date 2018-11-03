@@ -21,6 +21,12 @@ friend ArrayTextureFrameBuffer;
 public:
 	ArrayTexture(ImageFormat type, unsigned int widthHeight, unsigned int imageCount);
 	ArrayTexture(ArrayTexture const&) = delete;
+
+	// Moving instantiations of this class is not allowed because array texture framebuffer objects hold
+	// pointers to array texture objects
+	ArrayTexture(ArrayTexture &&) = delete;
+	ArrayTexture& operator=(const ArrayTexture&&) = delete;
+
 	~ArrayTexture();
 
 	void bind() const;

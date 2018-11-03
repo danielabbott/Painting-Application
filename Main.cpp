@@ -235,21 +235,20 @@ int main(int argc, char ** argv)
 	UI::initialise_ui();
 
 
-	InputToggleButton inp = InputToggleButton();
-	MyButton button1 = MyButton("Sample button");
-	UI::MenuBar container = UI::MenuBar(vector<UI::Widget *> { &inp, &button1 }, 1, 0, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_ACCROSS);
+	InputToggleButton inp;
+	MyButton button1("Sample button");
+	UI::MenuBar container(vector<UI::Widget *> { &inp, &button1 }, 1, 0, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_ACCROSS);
 
-	// UI::Label lbl = UI::Label("hiya");
-	MyButton b1 = MyButton("1");
-	MyButton b2 = MyButton("2");
-	MyButton b3 = MyButton("333333333");
-	UI::Menu menu = UI::Menu(vector<UI::Widget *> { &b1, &b2, &b3 });
+	MyButton b1("1");
+	MyButton b2("2");
+	MyButton b3("333333333");
+	UI::Menu menu(vector<UI::Widget *> { &b1, &b2, &b3 });
 
-	UI::MenuItem button12345 = UI::MenuItem("12345", &menu);
+	UI::MenuItem button12345("12345", &menu);
 	ColourSetter red("Red", 1, 0, 0);
 	ColourSetter green("Green", 0, 1, 0);
 	ColourSetter blue("Blue", 0, 0, 1);
-	UI::MenuBar container2 = UI::MenuBar(vector<UI::Widget *> { &button12345,&red,&green,&blue }, 1, 2, 0, 0, 0xff404040, UI::Container::LayoutManager::FLOW_ACCROSS);
+	UI::MenuBar container2(vector<UI::Widget *> { &button12345,&red,&green,&blue }, 1, 2, 0, 0, 0xff404040, UI::Container::LayoutManager::FLOW_ACCROSS);
 
 	canvas = new Canvas(1, 1, 0, 0);
 
@@ -272,11 +271,11 @@ int main(int argc, char ** argv)
 
 	layerLabels.insert(layerLabels.begin(), new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::LayoutManager::NONE));
 	layerLabels.push_back(new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::LayoutManager::NONE));
-	UI::Container layersContainer = UI::Container(layerLabels, 0, 1, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_DOWN);
+	UI::Container layersContainer(layerLabels, 0, 1, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_DOWN);
 
 
 
-	UI::Container root = UI::Container(vector<UI::Widget *> { &container,canvas,&container2,&layersContainer }, 0, 0, 0, 0, 0, UI::Container::LayoutManager::BORDER);
+	UI::Container root(vector<UI::Widget *> { &container,canvas,&container2,&layersContainer }, 0, 0, 0, 0, 0, UI::Container::LayoutManager::BORDER);
 	set_root_container(&root);
 
 	unsigned int x, y, canvasWidth, canvasHeight;

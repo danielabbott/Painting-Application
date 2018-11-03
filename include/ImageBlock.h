@@ -83,6 +83,9 @@ private:
 
 public:
 	ImageBlock(unsigned int x_, unsigned int y_, Canvas const& canvas);
+	ImageBlock(ImageBlock const&) = delete;
+	ImageBlock(ImageBlock &&) = delete;
+	ImageBlock& operator=(const ImageBlock&&) = delete;
 
 	bool dirtyRegion(int x_, int y_, unsigned int width, unsigned int height);
 

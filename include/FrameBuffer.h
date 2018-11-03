@@ -12,6 +12,8 @@ class ArrayTextureFrameBuffer
 public:
 	ArrayTextureFrameBuffer(ArrayTexture & arrayTexture, unsigned int arrayTextureIndex);
 	ArrayTextureFrameBuffer(ArrayTextureFrameBuffer const&) = delete;
+	ArrayTextureFrameBuffer(ArrayTextureFrameBuffer &&) = delete;
+	ArrayTextureFrameBuffer& operator=(const ArrayTextureFrameBuffer&&) = delete;
 	~ArrayTextureFrameBuffer();
 
 	// For drawing on the framebuffer
@@ -32,6 +34,8 @@ public:
 
 	FrameBuffer(ImageFormat type, unsigned int width, unsigned int height, bool createWhenNeeded = false);
 	FrameBuffer(FrameBuffer const&) = delete;
+	FrameBuffer(FrameBuffer &&) = default;
+	FrameBuffer& operator=(const FrameBuffer&&) = delete;
 	~FrameBuffer();
 
 	// uses GL_ARB_clear_texture if available, otherwise will bind the framebuffer

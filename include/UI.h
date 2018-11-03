@@ -55,6 +55,10 @@ public:
 
 	Widget();
 	Widget(unsigned int x_, unsigned int y_, unsigned int w_, unsigned int h_, LeftRightAlignment leftRightTextAlign = LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TopBottomAlignment::TOP_BOTTOM_CENTRE);
+	
+	Widget(Widget const&) = delete;
+	Widget(Widget &&) = delete;
+	Widget& operator=(const Widget&&) = delete;
 
 	uint32_t getActualX() { return actualX; }
 	uint32_t getActualY() { return actualY; }
