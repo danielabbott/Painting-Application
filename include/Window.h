@@ -25,7 +25,7 @@ bool tablet_detected();
 typedef void (* window_resize_callback) (unsigned int, unsigned int);
 void assign_window_resize_callback(window_resize_callback);
 
-// Button, x, y
+// Button, x, y, down
 typedef void (* mouse_click_callback) (unsigned int, unsigned int, unsigned int, bool);
 void assign_mouse_click_callback(mouse_click_callback callback);
 

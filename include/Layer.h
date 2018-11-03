@@ -24,8 +24,12 @@ struct Layer {
 	Layer * next = nullptr; // The layer above
 	Layer * parent = nullptr;
 
+	bool visible = true;
+
 	Layer() {}
 	Layer(std::string name_) : type(Type::LAYER), name(name_) {}
+
+	Layer * getNext();
 };
 
 // TODO Remove this. This is just for testing things

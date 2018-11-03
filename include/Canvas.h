@@ -58,6 +58,7 @@ public:
 	Layer * get_active_layer() const;
 	void clear_layer(Layer * layer);
 	void fill_layer(Layer * layer, uint32_t colour);
+	void forceRedraw();
 
 	void initialise_canvas_display(unsigned int x, unsigned int y);
 

@@ -18,7 +18,24 @@ Brush testBrush;
 
 CanvasResources canvasResources;
 
-
+Layer * Layer::getNext()
+{
+	if(firstChild) {
+		assert(type != Layer::Type::LAYER);
+		return firstChild;
+	}
+	else {
+		if(next) {
+			return next;
+		}
+		else if(parent && parent->next) {
+			return parent->next;
+		}
+		else {
+			return nullptr;
+		}
+	}
+}
 
 Layer * Canvas::get_first_layer() const
 {
@@ -86,7 +103,9 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 		glActiveTexture(GL_TEXTURE0);
 		canvasResources.strokeLayer->bindTexture();
 
-		glDisable(GL_BLEND);
+		// glDisable(GL_BLEND);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ZERO);
 
 		glBindVertexArray(canvasResources.vaoId);
 
@@ -235,7 +254,7 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 		}
 	}
 
-	unsigned int size = 1000;
+	unsigned int size = 15;
 
 
 	bind_shader_program(testBrush.shaderProgram);
@@ -351,4 +370,12 @@ void set_active_colour(float r, float g, float b, float a)
 	canvasResources.activeColour[1] = g;
 	canvasResources.activeColour[2] = b;
 	canvasResources.activeColour[3] = a;
+}
+
+void Canvas::forceRedraw()
+{
+	for(ImageBlock & block : imageBlocks) {
+		block.dirtyRegion(block.getX(), block.getY(), image_block_size(), image_block_size());
+	}
+	canvasDirty = true;
 }

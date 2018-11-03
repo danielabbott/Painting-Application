@@ -353,6 +353,24 @@ static void scan_tablet_events()
 
 void wait_for_input(double timeout)
 {
+
+	
+	// { // Add user input in the first frame
+	// 	static int i = 0;
+	// 	++i;
+
+	// 	if(i==1){
+
+	// 		mouseClickCallback(0, 100, 400, true);
+	// 		mouseMotionCallback(1000, 400);
+	// 	}
+	// 	else if(i==2){
+
+	// 		mouseClickCallback(0, 1000, 400, false);
+	// 	}
+	// }
+	
+
 	scan_tablet_events();
 
 	if(timeout == 0) {
@@ -363,6 +381,8 @@ void wait_for_input(double timeout)
 	}
 
 	scan_tablet_events();
+
+
 }
 
 /* Tablet detection code */

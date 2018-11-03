@@ -26,23 +26,25 @@ class FrameBuffer
 	ImageFormat type;
 	unsigned int width = 0;
 	unsigned int height = 0;
+
+	void create();
 public:
 
-	FrameBuffer(ImageFormat type, unsigned int width, unsigned int height);
+	FrameBuffer(ImageFormat type, unsigned int width, unsigned int height, bool createWhenNeeded = false);
 	FrameBuffer(FrameBuffer const&) = delete;
 	~FrameBuffer();
 
 	// uses GL_ARB_clear_texture if available, otherwise will bind the framebuffer
-	void clear() const;
+	void clear();
 
 	// For drawing on the framebuffer
-	void bindFrameBuffer() const;
+	void bindFrameBuffer();
 
 	// For using this framebuffer as a texture to draw with
-	void bindTexture() const;
+	void bindTexture();
 
 	// The texture MUST be bound when this function is called
-	void getTexureData(void * outputBuffer) const;
+	void getTexureData(void * outputBuffer);
 	
 };
 

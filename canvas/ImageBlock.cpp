@@ -11,7 +11,7 @@
 using namespace std;
 
 
-unsigned int image_block_size() { return 1024; }
+unsigned int image_block_size() { return 256; }
 
 ImageBlock::ImageBlock(unsigned int x_, unsigned int y_, Canvas const& canvas)
 : x(x_), y(y_)
@@ -43,21 +43,8 @@ ImageBlock::ImageBlock(unsigned int x_, unsigned int y_, Canvas const& canvas)
 			}
 		}
 
-
-		if(layer->firstChild) {
-			assert(layer->type == Layer::Type::LAYER);
-			layer = layer->firstChild;
-		}
-		else {
-			if(layer->next) {
-				layer = layer->next;
-			}
-			else if(layer->parent && layer->parent->next) {
-				layer = layer->parent->next;
-			}
-			else {
-				break;
-			}
+		if(!(layer = layer->getNext())) {
+			break;
 		}
 	}
 
@@ -129,20 +116,8 @@ ImageBlock::ImageBlock(unsigned int x_, unsigned int y_, Canvas const& canvas)
 		}
 
 
-		if(layer->firstChild) {
-			assert(layer->type == Layer::Type::LAYER);
-			layer = layer->firstChild;
-		}
-		else {
-			if(layer->next) {
-				layer = layer->next;
-			}
-			else if(layer->parent && layer->parent->next) {
-				layer = layer->parent->next;
-			}
-			else {
-				break;
-			}
+		if(!(layer = layer->getNext())) {
+			break;
 		}
 	}
 

@@ -40,7 +40,7 @@ void Canvas::draw() {
 			canvasResources.uniformData.baseColour[2] = canvasResources.uniformData.baseColour[3] = 1;
 
 			while(1) {
-				if(layer->type == Layer::Type::LAYER) {
+				if(layer->type == Layer::Type::LAYER && layer->visible) {
 					const ImageBlock::LayerData * layerData = nullptr;
 					for(ImageBlock::LayerData const& ld : block.getLayerData()) {
 						if(ld.layer == layer) {
@@ -98,20 +98,9 @@ void Canvas::draw() {
 					}
 				}
 
-				if(layer->firstChild) {
-					assert(layer->type == Layer::Type::LAYER);
-					layer = layer->firstChild;
-				}
-				else {
-					if(layer->next) {
-						layer = layer->next;
-					}
-					else if(layer->parent && layer->parent->next) {
-						layer = layer->parent->next;
-					}
-					else {
-						break;
-					}
+
+				if(!(layer = layer->getNext())) {
+					break;
 				}
 			}
 

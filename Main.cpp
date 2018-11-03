@@ -95,6 +95,35 @@ public:
 	LayerButton(Layer * layer_) : UI::Label(layer_->name), layer(layer_) {}
 };
 
+class LayerVisibilityButton : public UI::Label
+{
+	Layer * layer;
+
+	virtual bool onMouseButtonReleased(unsigned int button) override
+	{ 
+		UI::Label::onMouseButtonReleased(button);
+		if(!button) {
+			layer->visible = !layer->visible;
+			canvas->forceRedraw();
+		}
+		return true; 
+	}
+
+	virtual string const& getText()
+	{
+		static string plusString = "+";
+		static string hyphenString = "-";
+		if(layer->visible) {
+			return plusString;
+		}
+		else {
+			return hyphenString;
+		}
+	}
+public:
+	LayerVisibilityButton(Layer * layer_) : UI::Label(layer_->name), layer(layer_) {}
+};
+
 class ColourSetter : public UI::Button
 {
 	float colour[3];
@@ -230,6 +259,7 @@ int main(int argc, char ** argv)
 	while(1) {
 		if(layer->type == Layer::Type::LAYER) {
 			layerLabels.insert(layerLabels.begin(), new LayerButton(layer));
+			layerLabels.insert(layerLabels.begin(), new LayerVisibilityButton(layer));
 		}
 
 		if(layer->next) {
@@ -270,6 +300,13 @@ int main(int argc, char ** argv)
 				clog << "Time to update: " << setprecision(3) << (time / 1000000.0f) << " ms" << endl;
 			}
 		}
+
+		// { // make the application quit after 2 frames
+		// 	// Quit application after second frame
+		// 	static int i = 0;
+		// 	i++;
+		// 	if(i == 3) break;
+		// }
 
 		// Limit frame rate to 30 fps when user is moving the mouse/stylus
 		auto now = chrono::high_resolution_clock::now();

@@ -18,8 +18,21 @@ lib/glad.o:
 
 clean:
 	-del *.o
-	-del lib\*.o
-	-del UI\*.o
+	-del ui\*.o
 	-del Canvas\*.o
 
+fullclean:
+	-del *.o
+	-del ui\*.o
+	-del canvas\*.o
+	-del lib\*.o
+
+cleancanvas:
+	-del canvas\*.o
+
+cleanui:
+	-del ui\*.o
+
+cleanroot:
+	-del *.o
 

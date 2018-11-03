@@ -241,9 +241,9 @@ static inline void create_opengl_images(unsigned int canvasWidth, unsigned int c
 
 	canvasResources.strokeLayer = new FrameBuffer(ImageFormat::FMT_R, canvasWidth, canvasHeight);
 	canvasResources.strokeLayer->clear();
-	canvasResources.imageBlockTempLayerRGBA = new FrameBuffer(ImageFormat::FMT_RGBA, image_block_size(), image_block_size());
-	canvasResources.imageBlockTempLayerRG = new FrameBuffer(ImageFormat::FMT_RG, image_block_size(), image_block_size());
-	canvasResources.imageBlockTempLayerR = new FrameBuffer(ImageFormat::FMT_R, image_block_size(), image_block_size());
+	canvasResources.imageBlockTempLayerRGBA = new FrameBuffer(ImageFormat::FMT_RGBA, image_block_size(), image_block_size(), true);
+	canvasResources.imageBlockTempLayerRG = new FrameBuffer(ImageFormat::FMT_RG, image_block_size(), image_block_size(), true);
+	canvasResources.imageBlockTempLayerR = new FrameBuffer(ImageFormat::FMT_R, image_block_size(), image_block_size(), true);
 
 }
 
@@ -298,14 +298,13 @@ Canvas::Canvas(unsigned int x, unsigned int y, unsigned int width, unsigned int 
 
 	layers[0].type = Layer::Type::LAYER;
 	layers[0].name = "bottom layer";
-	// layers[1].type = Layer::Type::LAYER;
-	// layers[1].name = "top layer";
-	// layers[1].imageFormatSpecificIndex = 1;
+	layers[1].type = Layer::Type::LAYER;
+	layers[1].name = "top layer";
 
 	firstLayer = &layers[0];
-	activeLayer = &layers[0];
-	// activeLayer = &layers[1];
-	// layers[0].next = &layers[1];
+	// activeLayer = &layers[0];
+	activeLayer = &layers[1];
+	layers[0].next = &layers[1];
 
 	canvasResources.activeColour[0] = 1;
 	canvasResources.activeColour[1] = 0;
@@ -330,6 +329,7 @@ Canvas::Canvas(unsigned int x, unsigned int y, unsigned int width, unsigned int 
 	for(ImageBlock & block : imageBlocks) {
 		block.dirtyRegion(block.getX(), block.getY(), image_block_size(), image_block_size());
 		block.fillLayer(firstLayer, 0xffa0a0a0);
+		block.fillLayer(activeLayer, 0x00ffffff);
 	}
 	canvasDirty = true;
 }

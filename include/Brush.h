@@ -12,7 +12,7 @@ struct Brush {
 	float colour[4] = {0,0,0,1};
 
 	float opacity = 1;
-	float hardness = 0.9f; // 0 to 1
+	float hardness = 0.8f; // 0 to 1
 
 	enum class BlendMode {
 		MAX, // Used for simple brushes
