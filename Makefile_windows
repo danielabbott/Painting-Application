@@ -7,11 +7,11 @@ OBJECTS=$(SOURCES:.cpp=.o)
 
 
 all: $(OBJECTS) lib/glad.o
-	$(CXX) *.o lib/*.o UI/*.o Canvas/*.o -o paint.exe -Og -g -fstack-protector-all -DGLFW_DLL -L. -lglfw3 -lpng -lz -lfreetype
+	$(CXX) *.o lib/*.o UI/*.o Canvas/*.o -o paint.exe -O0 -g -fstack-protector-all -DGLFW_DLL -L. -lglfw3 -lpng -lz -lfreetype
 
 # Add '-DNDEBUG' to disable debug assertations
 .cpp.o:
-	$(CXX) -c -std=c++11 -Wall -Wextra -Og -g -Wpedantic -Iinclude -Iwindows_include -fstack-protector-all $< -o $@
+	$(CXX) -c -std=c++11 -Wall -Wextra -O0 -g -Wpedantic -Iinclude -Iwindows_include -fstack-protector-all $< -o $@
 
 lib/glad.o:
 	$(CC) -c lib/glad.c -Iinclude -o lib/glad.o

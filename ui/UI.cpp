@@ -372,7 +372,6 @@ void Container::bake()
 
 			widget->getDimensions(widget->actualWidth, widget->actualHeight);
 			widgetX += widget->actualWidth + WIDGET_PADDING;
-			widget->actualWidth += WIDGET_PADDING;
 
 			// All widgets are the same height
 			if(h) {

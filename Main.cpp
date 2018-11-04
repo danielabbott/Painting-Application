@@ -92,7 +92,7 @@ class LayerButton : public UI::Label
 		}
 	}
 public:
-	LayerButton(Layer * layer_) : UI::Label(layer_->name), layer(layer_) {}
+	LayerButton(Layer * layer_) : UI::Label(layer_->name, 0, 0, 150, 0), layer(layer_) {}
 };
 
 class LayerVisibilityButton : public UI::Label
@@ -121,7 +121,7 @@ class LayerVisibilityButton : public UI::Label
 		}
 	}
 public:
-	LayerVisibilityButton(Layer * layer_) : UI::Label(layer_->name), layer(layer_) {}
+	LayerVisibilityButton(Layer * layer_) : UI::Label(layer_->name, 1, 0, 50, 0), layer(layer_) {}
 };
 
 class ColourSetter : public UI::Button
@@ -257,8 +257,13 @@ int main(int argc, char ** argv)
 	Layer * layer = canvas->get_first_layer();
 	while(1) {
 		if(layer->type == Layer::Type::LAYER) {
-			layerLabels.insert(layerLabels.begin(), new LayerButton(layer));
-			layerLabels.insert(layerLabels.begin(), new LayerVisibilityButton(layer));
+			UI::Widget * layerNameButton = new LayerButton(layer);
+			UI::Widget * layerVisibilityButton = new LayerVisibilityButton(layer);
+
+			UI::Container * c = new UI::Container(vector<UI::Widget *>{layerNameButton, layerVisibilityButton},
+				0, layerLabels.size(), 200, 0, 0, UI::Container::LayoutManager::FLOW_ACCROSS);
+
+			layerLabels.insert(layerLabels.begin(), c); 
 		}
 
 		if(layer->next) {

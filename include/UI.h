@@ -47,8 +47,9 @@ protected:
 	unsigned int x = 0, y = 0;
 
 	// Preferred size
-	// Some widgets use these (containers, canvas)
-	// Labels and buttons ignore these and set their size to match their text
+	// If non-zero these values will override the widgets default size
+	// The default size depends on the widget and it's configuration
+	// E.g. Labels set their preferred size to match their containing text
 	unsigned int w = 0, h = 0;
 
 public:
@@ -214,6 +215,9 @@ protected:
 	std::string widgetText;
 	unsigned int textWidth;
 public:
+	Label(std::string text_, unsigned int x, unsigned int y, unsigned int w, unsigned int h,	
+		LeftRightAlignment leftRightTextAlign = LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TopBottomAlignment::TOP_BOTTOM_CENTRE);
+
 	Label(std::string text_, unsigned int x, unsigned int y, 
 		LeftRightAlignment leftRightTextAlign = LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TopBottomAlignment::TOP_BOTTOM_CENTRE);
 
