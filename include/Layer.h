@@ -22,6 +22,7 @@ struct Layer {
 
 	Layer * firstChild = nullptr;
 	Layer * next = nullptr; // The layer above
+	Layer * prev = nullptr;
 	Layer * parent = nullptr;
 
 	bool visible = true;

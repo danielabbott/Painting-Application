@@ -5,9 +5,15 @@ using namespace std;
 
 namespace UI {
 
+
 Button::Button(std::string text_, LeftRightAlignment leftRightTextAlign_, TopBottomAlignment topBottomTextAlign_)
-: Label(text_, leftRightTextAlign_, topBottomTextAlign_) 
-{}
+: Label(text_, leftRightTextAlign_, topBottomTextAlign_) {}
+
+Button::Button(std::string text_, unsigned int x, unsigned int y,LeftRightAlignment leftRightTextAlign_, TopBottomAlignment topBottomTextAlign_)
+: Label(text_, x, y, leftRightTextAlign_, topBottomTextAlign_) {}
+
+Button::Button(string text_, unsigned int x, unsigned int y, unsigned int w, unsigned int h, LeftRightAlignment leftRightTextAlign_, TopBottomAlignment topBottomTextAlign_)
+: Label(text_, x, y, w, h, leftRightTextAlign_, topBottomTextAlign_) {}
 
 uint32_t Button::getBackGroundColour()
 {

@@ -14,6 +14,8 @@ class Label;
 class Button;
 class Canvas;
 
+unsigned int get_widget_padding();
+
 class Widget {
 	friend Container;
 	friend bool draw_ui(bool);
@@ -152,7 +154,7 @@ public:
 
 		// Preferred width,height of widgets are used directly. Preferred x,y ignored.
 		// Preferred width and height of container are ignored
-		FLOW_ACCROSS,
+		FLOW_ACROSS,
 
 		// Preferred width,height of widgets are used directly. Preferred x,y ignored.
 		// Preferred width and height of container are ignored
@@ -230,6 +232,12 @@ public:
 class Button : public Label {
 bool beingClicked = false;
 public:
+	Button(std::string text_, unsigned int x, unsigned int y, unsigned int w, unsigned int h,	
+		LeftRightAlignment leftRightTextAlign = LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TopBottomAlignment::TOP_BOTTOM_CENTRE);
+
+	Button(std::string text_, unsigned int x, unsigned int y, 
+		LeftRightAlignment leftRightTextAlign = LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TopBottomAlignment::TOP_BOTTOM_CENTRE);
+
 	Button(std::string text_, LeftRightAlignment leftRightTextAlign = LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment topBottomTextAlign = TopBottomAlignment::TOP_BOTTOM_CENTRE);
 
 	virtual uint32_t getBackGroundColour() override;

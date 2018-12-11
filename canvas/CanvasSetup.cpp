@@ -247,8 +247,6 @@ static inline void create_opengl_images(unsigned int canvasWidth, unsigned int c
 
 }
 
-// Test layers
-static Layer layers[2];
 
 void Canvas::initialise_canvas_display(unsigned int x, unsigned int y)
 {
@@ -296,15 +294,25 @@ Canvas::Canvas(unsigned int x, unsigned int y, unsigned int width, unsigned int 
 
 	// create test layers
 
-	layers[0].type = Layer::Type::LAYER;
-	layers[0].name = "bottom layer";
-	layers[1].type = Layer::Type::LAYER;
-	layers[1].name = "top layer";
+	Layer * rootLayer = new Layer();
+	Layer * layer1 = new Layer();
+	Layer * layer2 = new Layer();
 
-	firstLayer = &layers[0];
-	// activeLayer = &layers[0];
-	activeLayer = &layers[1];
-	layers[0].next = &layers[1];
+	layer1->type = Layer::Type::LAYER;
+	layer1->name = "bottom layer";
+	layer2->type = Layer::Type::LAYER;
+	layer2->name = "top layer";
+
+	rootLayer->type = Layer::Type::LAYER_GROUP;
+
+	firstLayer = layer1;
+	activeLayer = layer2;
+
+	layer1->next = layer2;
+	layer2->prev = layer1;
+	layer1->parent = rootLayer;
+	layer2->parent = rootLayer;
+	rootLayer->firstChild = layer1;
 
 	canvasResources.activeColour[0] = 1;
 	canvasResources.activeColour[1] = 0;

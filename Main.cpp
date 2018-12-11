@@ -69,6 +69,52 @@ public:
 	}
 };
 
+class LayerMoveUpButton : public UI::Button
+{
+	Layer * layer;
+
+	virtual bool onMouseButtonReleased(unsigned int button) override
+	{ 
+		UI::Button::onMouseButtonReleased(button);
+		if(!button && layer->next) {
+			Layer * layer2 = layer->next;
+			if(layer->prev) {
+				layer->prev->next = layer2;
+				layer2->prev = layer->prev;
+			}
+			layer->prev = layer2;
+			layer->next = layer2->next;
+			if(layer2->next) {
+				layer2->next->prev = layer;
+			}
+			layer2->next = layer;
+			canvas->forceRedraw();
+		}
+		return true; 
+	}
+public:
+	LayerMoveUpButton(Layer * layer_) : UI::Button("^", 1, 0, 20, 0), layer(layer_) {}
+};
+
+class LayerMoveDownButton : public UI::Button
+{
+	Layer * layer;
+
+	virtual bool onMouseButtonReleased(unsigned int button) override
+	{ 
+		UI::Button::onMouseButtonReleased(button);
+		if(!button && layer->next) {
+			Layer * layer2 = layer->next;
+			// TODO
+			canvas->forceRedraw();
+		}
+		return true; 
+	}
+public:
+	LayerMoveDownButton(Layer * layer_) : UI::Button("\\/", 1, 0, 20, 0), layer(layer_) {}
+};
+
+
 class LayerButton : public UI::Label
 {
 	Layer * layer;
@@ -92,7 +138,7 @@ class LayerButton : public UI::Label
 		}
 	}
 public:
-	LayerButton(Layer * layer_) : UI::Label(layer_->name, 0, 0, 150, 0), layer(layer_) {}
+	LayerButton(Layer * layer_) : UI::Label(layer_->name, 0, 0, 100, 0), layer(layer_) {}
 };
 
 class LayerVisibilityButton : public UI::Label
@@ -121,7 +167,7 @@ class LayerVisibilityButton : public UI::Label
 		}
 	}
 public:
-	LayerVisibilityButton(Layer * layer_) : UI::Label(layer_->name, 1, 0, 50, 0), layer(layer_) {}
+	LayerVisibilityButton(Layer * layer_) : UI::Label("+", 1, 0, 20, 0), layer(layer_) {}
 };
 
 class ColourSetter : public UI::Button
@@ -237,7 +283,7 @@ int main(int argc, char ** argv)
 
 	InputToggleButton inp;
 	MyButton button1("Sample button");
-	UI::MenuBar container(vector<UI::Widget *> { &inp, &button1 }, 1, 0, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_ACCROSS);
+	UI::MenuBar container(vector<UI::Widget *> { &inp, &button1 }, 1, 0, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_ACROSS);
 
 	MyButton b1("1");
 	MyButton b2("2");
@@ -248,7 +294,7 @@ int main(int argc, char ** argv)
 	ColourSetter red("Red", 1, 0, 0);
 	ColourSetter green("Green", 0, 1, 0);
 	ColourSetter blue("Blue", 0, 0, 1);
-	UI::MenuBar container2(vector<UI::Widget *> { &button12345,&red,&green,&blue }, 1, 2, 0, 0, 0xff404040, UI::Container::LayoutManager::FLOW_ACCROSS);
+	UI::MenuBar container2(vector<UI::Widget *> { &button12345,&red,&green,&blue }, 1, 2, 0, 0, 0xff404040, UI::Container::LayoutManager::FLOW_ACROSS);
 
 	canvas = new Canvas(1, 1, 0, 0);
 
@@ -259,9 +305,14 @@ int main(int argc, char ** argv)
 		if(layer->type == Layer::Type::LAYER) {
 			UI::Widget * layerNameButton = new LayerButton(layer);
 			UI::Widget * layerVisibilityButton = new LayerVisibilityButton(layer);
+			UI::Widget * layerMoveUp = new LayerMoveUpButton(layer);
+			UI::Widget * layerMoveDown = new LayerMoveDownButton(layer);
 
-			UI::Container * c = new UI::Container(vector<UI::Widget *>{layerNameButton, layerVisibilityButton},
-				0, layerLabels.size(), 200, 0, 0, UI::Container::LayoutManager::FLOW_ACCROSS);
+
+			UI::Container * c = new UI::Container(vector<UI::Widget *>
+				{layerNameButton, layerVisibilityButton, layerMoveUp, layerMoveDown},
+				0, layerLabels.size(), 160+3*UI::get_widget_padding(), 0, 0, UI::Container::LayoutManager::FLOW_ACROSS);
+
 
 			layerLabels.insert(layerLabels.begin(), c); 
 		}

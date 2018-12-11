@@ -12,7 +12,7 @@ using namespace std;
 
 namespace UI {
 
-static const unsigned int WIDGET_PADDING = 4;
+unsigned int get_widget_padding() { return 4; }
 
 static bool globalDirtyFlag = true;
 
@@ -341,8 +341,8 @@ void Container::bake()
 			widget->actualY = widgetY;
 
 			widget->getDimensions(widget->actualWidth, widget->actualHeight);
-			widgetY += widget->actualHeight + WIDGET_PADDING;
-			widget->actualHeight += WIDGET_PADDING;
+			widgetY += widget->actualHeight + get_widget_padding();
+			widget->actualHeight += get_widget_padding();
 
 			// All widgets are the same width
 			if(w) {
@@ -362,7 +362,7 @@ void Container::bake()
 		}
 	}
 
-	else if(layoutManager == LayoutManager::FLOW_ACCROSS) {
+	else if(layoutManager == LayoutManager::FLOW_ACROSS) {
 		getDimensions(w, h);
 
 		unsigned int widgetX = 0, maxHeight = 0;
@@ -371,7 +371,7 @@ void Container::bake()
 			widget->actualY = 0;
 
 			widget->getDimensions(widget->actualWidth, widget->actualHeight);
-			widgetX += widget->actualWidth + WIDGET_PADDING;
+			widgetX += widget->actualWidth + get_widget_padding();
 
 			// All widgets are the same height
 			if(h) {
@@ -458,7 +458,7 @@ void Container::getDimensions(unsigned int & width, unsigned int & height)
 				maxWidth = wWidth;
 			}
 
-			minHeight += h + WIDGET_PADDING;
+			minHeight += h + get_widget_padding();
 		}
 
 		if(!w) {
@@ -469,7 +469,7 @@ void Container::getDimensions(unsigned int & width, unsigned int & height)
 			height = minHeight;
 		}
 	}
-	else if(layoutManager == LayoutManager::FLOW_ACCROSS) {
+	else if(layoutManager == LayoutManager::FLOW_ACROSS) {
 		unsigned int minWidth = 0;
 		unsigned int maxHeight = 0;
 
@@ -482,7 +482,7 @@ void Container::getDimensions(unsigned int & width, unsigned int & height)
 				maxHeight = wHeight;
 			}
 
-			minWidth += w + WIDGET_PADDING;
+			minWidth += w + get_widget_padding();
 		}
 
 		if(!w) {
