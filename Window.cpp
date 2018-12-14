@@ -277,9 +277,16 @@ void assign_scroll_callback(scroll_callback callback)
 
 //
 
+static bool forceWindowClose = false;
+
 bool window_should_close()
 {
-	return glfwWindowShouldClose(window);
+	return forceWindowClose || glfwWindowShouldClose(window);
+}
+
+void quit_application()
+{
+	forceWindowClose = true;
 }
 
 void swap_buffers()

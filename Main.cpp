@@ -13,193 +13,16 @@
 #include <Timer.h>
 #include <iomanip>
 #include <cstring>
+#include <MainWindow.h>
 
 using namespace std;
 
 Canvas * canvas;
 
-class MyButton : public UI::Button
-{
-	virtual bool onMouseButtonReleased(unsigned int button) override
-	{ 
-		UI::Button::onMouseButtonReleased(button);
-		if(!button) {
-			// clear_layer(get_first_layer()->next);
-			canvas->fill_layer(canvas->get_first_layer(), 0xffffffff);
-		}
-		return true; 
-	}
-public:
-	MyButton(string text_)
-	: UI::Button(text_, LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment::TOP_BOTTOM_CENTRE) {}
-};
-
-class InputToggleButton : public UI::Button
-{
-	bool useMouse = true;
-
-	virtual bool onMouseButtonReleased(unsigned int button) override
-	{ 
-		UI::Button::onMouseButtonReleased(button);
-		if(!button) {
-			useMouse = !useMouse;
-			if(!tablet_detected()) {
-				useMouse = true;
-			}
-			set_canvas_input_device(useMouse);
-		}
-		return true; 
-	}
-
-	virtual string const& getText()
-	{
-		static string mouseString = "Mouse";
-		static string tabletString = "Tablet";
-		if(useMouse) {
-			return mouseString;
-		}
-		else {
-			return tabletString;
-		}
-	}
-public:
-	InputToggleButton()
-	: UI::Button("Mouse", LeftRightAlignment::LEFT_RIGHT_CENTRE, TopBottomAlignment::TOP_BOTTOM_CENTRE) {
-		set_canvas_input_device(true);
-	}
-};
-
-class LayerMoveUpButton : public UI::Button
-{
-	Layer * layer;
-
-	virtual bool onMouseButtonReleased(unsigned int button) override
-	{ 
-		UI::Button::onMouseButtonReleased(button);
-		if(!button && layer->next) {
-			Layer * layer2 = layer->next;
-			if(layer->prev) {
-				layer->prev->next = layer2;
-				layer2->prev = layer->prev;
-			}
-			layer->prev = layer2;
-			layer->next = layer2->next;
-			if(layer2->next) {
-				layer2->next->prev = layer;
-			}
-			layer2->next = layer;
-			canvas->forceRedraw();
-		}
-		return true; 
-	}
-public:
-	LayerMoveUpButton(Layer * layer_) : UI::Button("^", 1, 0, 20, 0), layer(layer_) {}
-};
-
-class LayerMoveDownButton : public UI::Button
-{
-	Layer * layer;
-
-	virtual bool onMouseButtonReleased(unsigned int button) override
-	{ 
-		UI::Button::onMouseButtonReleased(button);
-		if(!button && layer->next) {
-			Layer * layer2 = layer->next;
-			// TODO
-			canvas->forceRedraw();
-		}
-		return true; 
-	}
-public:
-	LayerMoveDownButton(Layer * layer_) : UI::Button("\\/", 1, 0, 20, 0), layer(layer_) {}
-};
-
-
-class LayerButton : public UI::Label
-{
-	Layer * layer;
-
-	virtual bool onMouseButtonReleased(unsigned int button) override
-	{ 
-		UI::Label::onMouseButtonReleased(button);
-		if(!button) {
-			canvas->set_active_layer(layer);
-		}
-		return true; 
-	}
-
-	virtual uint32_t getBackGroundColour() override
-	{
-		if(layer == canvas->get_active_layer()) {
-			return 0x30300000;
-		}
-		else {
-			return 0;
-		}
-	}
-public:
-	LayerButton(Layer * layer_) : UI::Label(layer_->name, 0, 0, 100, 0), layer(layer_) {}
-};
-
-class LayerVisibilityButton : public UI::Label
-{
-	Layer * layer;
-
-	virtual bool onMouseButtonReleased(unsigned int button) override
-	{ 
-		UI::Label::onMouseButtonReleased(button);
-		if(!button) {
-			layer->visible = !layer->visible;
-			canvas->forceRedraw();
-		}
-		return true; 
-	}
-
-	virtual string const& getText()
-	{
-		static string plusString = "+";
-		static string hyphenString = "-";
-		if(layer->visible) {
-			return plusString;
-		}
-		else {
-			return hyphenString;
-		}
-	}
-public:
-	LayerVisibilityButton(Layer * layer_) : UI::Label("+", 1, 0, 20, 0), layer(layer_) {}
-};
-
-class ColourSetter : public UI::Button
-{
-	float colour[3];
-
-	virtual bool onMouseButtonReleased(unsigned int button) override
-	{ 
-		cout<<button<<endl;
-		UI::Button::onMouseButtonReleased(button);
-		if(!button) {
-			set_active_colour(colour[0], colour[1], colour[2], 0.3f);
-		}
-		return true; 
-	}
-
-public:
-	ColourSetter(string t_, float r, float g, float b) : UI::Button(t_) 
-	{
-		colour[0] = r;
-		colour[1] = g;
-		colour[2] = b;
-	}
-};
-
 extern string webpLibraryFile;
 
-int main(int argc, char ** argv)
+void parse_args(int argc, char ** argv, unsigned int & glVer, unsigned int & forceBitDepth)
 {
-	unsigned int glVer = 0;
-	unsigned int forceBitDepth = 0;
-
 	for(int i = 1; i < argc; i++) {
 		if(		argv[i][0] == '-' 
 			&& (argv[i][1] == 'G' || argv[i][1] == 'g')
@@ -266,6 +89,14 @@ int main(int argc, char ** argv)
 			cout<<&argv[i][2]<<endl;
 		}
 	}
+}
+
+int main(int argc, char ** argv)
+{
+	unsigned int glVer = 0;
+	unsigned int forceBitDepth = 0;
+
+	parse_args(argc, argv, glVer, forceBitDepth);
 
 	create_window(1024, 768, glVer, forceBitDepth);
 	create_opengl_timer();
@@ -277,62 +108,13 @@ int main(int argc, char ** argv)
 	}
 
 
-
 	UI::initialise_ui();
+	canvas = new Canvas(1, 1, 1024, 768); // TODO: GUI layout could change, separate canvas widget from actual canvas data
 
 
-	InputToggleButton inp;
-	MyButton button1("Sample button");
-	UI::MenuBar container(vector<UI::Widget *> { &inp, &button1 }, 1, 0, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_ACROSS);
+	MainWindow mainWindow(canvas);
+	set_root_container(mainWindow.getRoot());
 
-	MyButton b1("1");
-	MyButton b2("2");
-	MyButton b3("333333333");
-	UI::Menu menu(vector<UI::Widget *> { &b1, &b2, &b3 });
-
-	UI::MenuItem button12345("12345", &menu);
-	ColourSetter red("Red", 1, 0, 0);
-	ColourSetter green("Green", 0, 1, 0);
-	ColourSetter blue("Blue", 0, 0, 1);
-	UI::MenuBar container2(vector<UI::Widget *> { &button12345,&red,&green,&blue }, 1, 2, 0, 0, 0xff404040, UI::Container::LayoutManager::FLOW_ACROSS);
-
-	canvas = new Canvas(1, 1, 0, 0);
-
-	vector<UI::Widget *> layerLabels;
-
-	Layer * layer = canvas->get_first_layer();
-	while(1) {
-		if(layer->type == Layer::Type::LAYER) {
-			UI::Widget * layerNameButton = new LayerButton(layer);
-			UI::Widget * layerVisibilityButton = new LayerVisibilityButton(layer);
-			UI::Widget * layerMoveUp = new LayerMoveUpButton(layer);
-			UI::Widget * layerMoveDown = new LayerMoveDownButton(layer);
-
-
-			UI::Container * c = new UI::Container(vector<UI::Widget *>
-				{layerNameButton, layerVisibilityButton, layerMoveUp, layerMoveDown},
-				0, layerLabels.size(), 160+3*UI::get_widget_padding(), 0, 0, UI::Container::LayoutManager::FLOW_ACROSS);
-
-
-			layerLabels.insert(layerLabels.begin(), c); 
-		}
-
-		if(layer->next) {
-			layer = layer->next;
-		}
-		else {
-			break;
-		}
-	}
-
-	layerLabels.insert(layerLabels.begin(), new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::LayoutManager::NONE));
-	layerLabels.push_back(new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::LayoutManager::NONE));
-	UI::Container layersContainer(layerLabels, 0, 1, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_DOWN);
-
-
-
-	UI::Container root(vector<UI::Widget *> { &container,canvas,&container2,&layersContainer }, 0, 0, 0, 0, 0, UI::Container::LayoutManager::BORDER);
-	set_root_container(&root);
 
 	unsigned int x, y, canvasWidth, canvasHeight;
 	canvas->getArea(x, y, canvasWidth, canvasHeight);

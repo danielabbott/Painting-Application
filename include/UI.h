@@ -1,3 +1,5 @@
+// TODO: Use shared pointers for widgets
+
 #pragma once
 
 #include <vector>
@@ -300,6 +302,22 @@ bool draw_ui(bool forceRedraw);
 void get_window_dimensions(unsigned int & width, unsigned int & height);
 
 void free_ui_resources();
+
+class GUI
+{
+protected:
+	std::vector<Widget *> widgets;
+public:
+	// Populates widgets vector
+	// This constructor is to be overrided
+	GUI();
+
+	// Deletes all widgets and clears the widgets vector
+	// This does not need to be overrided by child classes
+	~GUI();
+
+	virtual Container * getRoot();
+};
 
 }
 

@@ -57,8 +57,10 @@ void setAbsWindowCoords(Container * c, unsigned int x=0, unsigned int y=0)
 void set_root_container(Container * c) 
 { 
 	rootContainer = c; 
-	rootContainer->bake(); 
-	setAbsWindowCoords(rootContainer); 
+	if(rootContainer) {
+		rootContainer->bake(); 
+		setAbsWindowCoords(rootContainer); 
+	}
 }
 void set_menu_overlay_root_container(Container * c, unsigned int x, unsigned int y)
 { 
@@ -958,6 +960,24 @@ void get_window_dimensions(unsigned int & width, unsigned int & height)
 {
 	width = windowWidth;
 	height = windowHeight;
+}
+
+GUI::GUI()
+{
+
+}
+
+GUI::~GUI()
+{
+	for(Widget * widget : widgets) {
+		delete widget;
+	}
+	widgets.clear();
+}
+
+Container * GUI::getRoot()
+{
+	return nullptr;
 }
 
 }

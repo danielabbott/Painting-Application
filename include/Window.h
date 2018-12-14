@@ -7,6 +7,10 @@ void set_window_icon(unsigned char * data, unsigned int width, unsigned int heig
 
 void find_tablets();
 bool window_should_close();
+
+// Sets the window-should-close flag as if the 'X' button was pressed on the window
+void quit_application();
+
 void swap_buffers();
 
 // Pass 0 to wait without a timeout
