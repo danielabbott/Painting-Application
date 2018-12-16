@@ -392,6 +392,11 @@ void Container::bake()
 			}
 		}
 	}
+
+	if(this == rootContainer2) {
+		actualWidth = w;
+		actualHeight = h;
+	}
 }
 
 void Container::getDimensions(unsigned int & width, unsigned int & height)
@@ -568,10 +573,6 @@ void mouse_clicked(unsigned int button, unsigned int x, unsigned int y, bool but
 	}
 	else {
 		if(widgetBeingClicked[button]) {
-			if(widgetBeingClickedIsInMenuOverlay[button]) {
-				x -= rootContainer2X;
-				y -= rootContainer2Y;
-			}
 			if(x_in_region(x, y, widgetBeingClicked[button]->getActualWindowX(), widgetBeingClicked[button]->getActualWindowY(), widgetBeingClicked[button]->getActualWidth(), widgetBeingClicked[button]->getActualHeight())) {
 				if(widgetBeingClicked[button]->onMouseButtonReleased(button)) {
 					globalDirtyFlag = true;
