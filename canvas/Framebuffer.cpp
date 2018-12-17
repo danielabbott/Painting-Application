@@ -64,7 +64,7 @@ void FrameBuffer::create()
 	if(type == ImageFormat::FMT_RGBA) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	}
-	else if (type == ImageFormat::FMT_RG) {cout<<"nononon"<<endl;
+	else if (type == ImageFormat::FMT_RG) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, nullptr);
 	}
 	else if (type == ImageFormat::FMT_R) {

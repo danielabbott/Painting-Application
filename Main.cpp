@@ -86,7 +86,7 @@ void parse_args(int argc, char ** argv, unsigned int & glVer, unsigned int & for
 		}
 
 		else {
-			cout<<&argv[i][2]<<endl;
+			clog << "Unrecognised command line parameter: " << &argv[i][2] << endl;
 		}
 	}
 }

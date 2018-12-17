@@ -554,7 +554,7 @@ void mouse_clicked(unsigned int button, unsigned int x, unsigned int y, bool but
 		Container::EventHandlerOutcome outcome = Container::EventHandlerOutcome::NOTHING;
 
 		if(rootContainer2 && rootContainer2->onClicked_(button, x-rootContainer2X-rootContainer2->getActualX(), y-rootContainer2Y-rootContainer2->getActualY(), outcome)) {
-			globalDirtyFlag = true;cout<<"click"<<endl;
+			globalDirtyFlag = true;
 		}
 
 		if(outcome == Container::EventHandlerOutcome::NOTHING) {
