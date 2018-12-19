@@ -379,3 +379,54 @@ void Canvas::forceRedraw()
 	}
 	canvasDirty = true;
 }
+
+void remove_layer(Layer & layer)
+{
+	if(layer.parent && layer.parent->firstChild == &layer) {
+		layer.parent->firstChild = layer.next;
+	}
+
+	if(layer.prev) {
+		layer.prev->next = layer.next;
+	}
+
+	if(layer.next) {
+		layer.next->prev = layer.prev;
+	}
+
+	layer.next = layer.prev = layer.parent = nullptr;
+}
+
+void add_layer_after(Layer & layer, Layer & newLayer)
+{
+	if(layer.next) {
+		Layer * rightLayer = layer.next;
+		layer.next = &newLayer;
+		newLayer.prev = &layer;
+		newLayer.next = rightLayer;
+		rightLayer->prev = &newLayer;
+	}
+	else {
+		layer.next = &newLayer;
+		newLayer.prev = &layer;
+		newLayer.next = nullptr;
+		newLayer.parent = layer.parent;
+	}
+}
+
+void add_layer_before(Layer & layer, Layer & newLayer)
+{
+	if(layer.prev) {
+		Layer * leftLayer = layer.prev;
+		layer.prev = &newLayer;
+		newLayer.next = &layer;
+		newLayer.prev = leftLayer;
+		leftLayer->next = &newLayer;
+	}
+	else {
+		layer.prev = &newLayer;
+		newLayer.next = &layer;
+		newLayer.prev = nullptr;
+		newLayer.parent = layer.parent;
+	}
+}

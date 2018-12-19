@@ -57,17 +57,9 @@ bool MainWindow::LayerMoveUpButton::onMouseButtonReleased(unsigned int button)
 { 
 	UI::Button::onMouseButtonReleased(button);
 	if(!button && layer->next) {
-		Layer * layer2 = layer->next;
-		if(layer->prev) {
-			layer->prev->next = layer2;
-			layer2->prev = layer->prev;
-		}
-		layer->prev = layer2;
-		layer->next = layer2->next;
-		if(layer2->next) {
-			layer2->next->prev = layer;
-		}
-		layer2->next = layer;
+		Layer * above = layer->next;
+		remove_layer(*layer);
+		add_layer_after(*above, *layer);
 		mainWindow->canvas->forceRedraw();
 	}
 	return true; 
@@ -80,9 +72,10 @@ MainWindow::LayerMoveUpButton::LayerMoveUpButton(MainWindow * mw, Layer * layer_
 bool MainWindow::LayerMoveDownButton::onMouseButtonReleased(unsigned int button)
 { 
 	UI::Button::onMouseButtonReleased(button);
-	if(!button && layer->next) {
-		Layer * layer2 = layer->next;
-		// TODO
+	if(!button && layer->prev) {
+		Layer * below = layer->prev;
+		remove_layer(*layer);
+		add_layer_before(*below, *layer);
 		mainWindow->canvas->forceRedraw();
 	}
 	return true; 
