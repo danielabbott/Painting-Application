@@ -307,16 +307,20 @@ class GUI
 {
 protected:
 	std::vector<Widget *> widgets;
-public:
-	// Populates widgets vector
-	// This constructor is to be overrided
-	GUI();
+
+	// If true, then this object should be recreated
+	bool recreationNeeded = false;
 
 	// Deletes all widgets and clears the widgets vector
-	// This does not need to be overrided by child classes
+	void clearWidgets();
+public:
+	GUI();
 	~GUI();
 
 	virtual Container * getRoot();
+
+	bool needsRecreating() { return recreationNeeded; }
+	void setNeedsRecreating() { recreationNeeded = true; }
 };
 
 }

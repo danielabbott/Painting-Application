@@ -90,7 +90,8 @@ class MainWindow : public UI::GUI
 	public:
 		QuitButton(std::string text_);
 	};
+
 public:
 	MainWindow(Canvas * canvas);
-	UI::Container * getRoot();
+	UI::Container * getRoot() override;
 };

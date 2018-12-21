@@ -37,19 +37,19 @@ Layer * Layer::getNext()
 	}
 }
 
-Layer * Canvas::get_first_layer() const
+Layer * Canvas::getFirstLayer() const
 {
 	return firstLayer;
 }
 
-void Canvas::set_active_layer(Layer * layer)
+void Canvas::setActiveLayer(Layer * layer)
 {
 	// TODO have layer groups selectable just don't allow drawing on them
 	assert(layer->type == Layer::Type::LAYER);
 	activeLayer = layer;
 }
 
-Layer * Canvas::get_active_layer() const
+Layer * Canvas::getActiveLayer() const
 {
 	return activeLayer;
 }
@@ -78,6 +78,11 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 	if(button == 0) {
 		clog << "Pen released" << endl;
 		penDown = false;
+
+		if(!activeLayer) {
+			// No layer is active so we weren't drawing. stop here.
+			return false;
+		}
 
 		// Stylus was lifted up, merge the stroke layer with the active layer and clear the stroke layer
 
@@ -345,7 +350,7 @@ bool Canvas::onScroll(unsigned int x, unsigned int y, int direction)
 	return true;
 }
 
-void Canvas::clear_layer(Layer * layer)
+void Canvas::clearLayer(Layer * layer)
 {
 	for(ImageBlock & block : imageBlocks) {
 		block.dirtyRegion(block.getX(), block.getY(), image_block_size(), image_block_size());
@@ -355,7 +360,7 @@ void Canvas::clear_layer(Layer * layer)
 }
 
 
-void Canvas::fill_layer(Layer * layer, uint32_t colour)
+void Canvas::fillLayer(Layer * layer, uint32_t colour)
 {
 	for(ImageBlock & block : imageBlocks) {
 		block.dirtyRegion(block.getX(), block.getY(), image_block_size(), image_block_size());
@@ -380,8 +385,21 @@ void Canvas::forceRedraw()
 	canvasDirty = true;
 }
 
-void remove_layer(Layer & layer)
+void Canvas::removeLayer(Layer & layer)
 {
+	if(activeLayer == &layer) {
+		activeLayer = nullptr;
+	}
+
+	if(firstLayer == &layer) {
+		if(layer.next) {
+			firstLayer = layer.next;
+		}
+		else {
+			firstLayer = layer.parent;
+		}
+	}
+
 	if(layer.parent && layer.parent->firstChild == &layer) {
 		layer.parent->firstChild = layer.next;
 	}
@@ -397,7 +415,7 @@ void remove_layer(Layer & layer)
 	layer.next = layer.prev = layer.parent = nullptr;
 }
 
-void add_layer_after(Layer & layer, Layer & newLayer)
+void Canvas::addLayerAfter(Layer & layer, Layer & newLayer)
 {
 	if(layer.next) {
 		Layer * rightLayer = layer.next;
@@ -414,7 +432,7 @@ void add_layer_after(Layer & layer, Layer & newLayer)
 	}
 }
 
-void add_layer_before(Layer & layer, Layer & newLayer)
+void Canvas::addLayerBefore(Layer & layer, Layer & newLayer)
 {
 	if(layer.prev) {
 		Layer * leftLayer = layer.prev;
@@ -424,6 +442,10 @@ void add_layer_before(Layer & layer, Layer & newLayer)
 		leftLayer->next = &newLayer;
 	}
 	else {
+		if(&layer == firstLayer) {
+			firstLayer = &newLayer;
+		}
+
 		layer.prev = &newLayer;
 		newLayer.next = &layer;
 		newLayer.prev = nullptr;

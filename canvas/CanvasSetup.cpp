@@ -248,7 +248,7 @@ static inline void create_opengl_images(unsigned int canvasWidth, unsigned int c
 }
 
 
-void Canvas::initialise_canvas_display(unsigned int x, unsigned int y)
+void Canvas::initialiseCanvasDisplay(unsigned int x, unsigned int y)
 {
 	canvasX = x;
 	canvasY = y;

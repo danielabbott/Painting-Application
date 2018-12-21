@@ -20,7 +20,7 @@ ImageBlock::ImageBlock(unsigned int x_, unsigned int y_, Canvas const& canvas)
 	unsigned int numRG = 0;
 	unsigned int numR = 0;
 
-	Layer * layer = canvas.get_first_layer();
+	Layer * layer = canvas.getFirstLayer();
 
 	if(!layer) {
 		// No layers, use default state
@@ -72,7 +72,7 @@ ImageBlock::ImageBlock(unsigned int x_, unsigned int y_, Canvas const& canvas)
 	}
 
 	numRGBA = numRG = numR = 0;
-	layer = canvas.get_first_layer();
+	layer = canvas.getFirstLayer();
 
 	while(1) {
 		if(layer->type == Layer::Type::LAYER) {

@@ -33,13 +33,3 @@ struct Layer {
 	Layer * getNext();
 };
 
-// TODO Remove this. This is just for testing things
-void create_layers();
-
-// This does not delete the layer object or it's image data
-// The layer's children will also be removed
-void remove_layer(Layer & layer);
-
-void add_layer_after(Layer & layer, Layer & newLayer);
-void add_layer_before(Layer & layer, Layer & newLayer);
-// TODO: add_layer_as_first_child

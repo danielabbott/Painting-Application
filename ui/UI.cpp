@@ -965,15 +965,25 @@ void get_window_dimensions(unsigned int & width, unsigned int & height)
 
 GUI::GUI()
 {
-
 }
 
-GUI::~GUI()
+void GUI::clearWidgets()
 {
 	for(Widget * widget : widgets) {
 		delete widget;
 	}
-	widgets.clear();
+	widgets.clear();	
+}
+
+GUI::~GUI()
+{
+	if(rootContainer == getRoot()) {
+		rootContainer = nullptr;
+	}
+	if(rootContainer2 == getRoot()) {
+		rootContainer2 = nullptr;
+	}
+	clearWidgets();
 }
 
 Container * GUI::getRoot()

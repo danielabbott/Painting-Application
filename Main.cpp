@@ -112,17 +112,23 @@ int main(int argc, char ** argv)
 	canvas = new Canvas(1, 1, 1024, 768); // TODO: GUI layout could change, separate canvas widget from actual canvas data
 
 
-	MainWindow mainWindow(canvas);
-	set_root_container(mainWindow.getRoot());
+	UI::GUI * mainWindow = new MainWindow(canvas);
+	set_root_container(mainWindow->getRoot());
 
 
 	unsigned int x, y, canvasWidth, canvasHeight;
 	canvas->getArea(x, y, canvasWidth, canvasHeight);
-	canvas->initialise_canvas_display(canvasWidth/2, canvasHeight/2);
+	canvas->initialiseCanvasDisplay(canvasWidth/2, canvasHeight/2);
 
 	auto lastUpdateTime = chrono::high_resolution_clock::now();
 
 	while(!window_should_close()) {
+		if(mainWindow->needsRecreating()) {
+			delete mainWindow;
+			mainWindow = new MainWindow(canvas);
+			set_root_container(mainWindow->getRoot());
+		}
+
 		start_opengl_timer();
 		bool redrawn = UI::draw_ui(false);
 		stop_opengl_timer();

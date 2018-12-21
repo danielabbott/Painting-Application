@@ -11,7 +11,7 @@ bool MainWindow::MyButton::onMouseButtonReleased(unsigned int button)
 	UI::Button::onMouseButtonReleased(button);
 	if(!button) {
 		// clear_layer(get_first_layer()->next);
-		mainWindow->canvas->fill_layer(mainWindow->canvas->get_first_layer(), 0xffffffff);
+		mainWindow->canvas->fillLayer(mainWindow->canvas->getFirstLayer(), 0xffffffff);
 	}
 	return true; 
 }
@@ -57,10 +57,18 @@ bool MainWindow::LayerMoveUpButton::onMouseButtonReleased(unsigned int button)
 { 
 	UI::Button::onMouseButtonReleased(button);
 	if(!button && layer->next) {
+		bool isActive = layer == mainWindow->canvas->getActiveLayer();
+
 		Layer * above = layer->next;
-		remove_layer(*layer);
-		add_layer_after(*above, *layer);
+		mainWindow->canvas->removeLayer(*layer);
+		mainWindow->canvas->addLayerAfter(*above, *layer);
+		
+		if(isActive) {
+			mainWindow->canvas->setActiveLayer(layer);
+		}
+
 		mainWindow->canvas->forceRedraw();
+		mainWindow->setNeedsRecreating();
 	}
 	return true; 
 }
@@ -73,10 +81,18 @@ bool MainWindow::LayerMoveDownButton::onMouseButtonReleased(unsigned int button)
 { 
 	UI::Button::onMouseButtonReleased(button);
 	if(!button && layer->prev) {
+		bool isActive = layer == mainWindow->canvas->getActiveLayer();
+
 		Layer * below = layer->prev;
-		remove_layer(*layer);
-		add_layer_before(*below, *layer);
+		mainWindow->canvas->removeLayer(*layer);
+		mainWindow->canvas->addLayerBefore(*below, *layer);
+
+		if(isActive) {
+			mainWindow->canvas->setActiveLayer(layer);
+		}
+
 		mainWindow->canvas->forceRedraw();
+		mainWindow->setNeedsRecreating();
 	}
 	return true; 
 }
@@ -89,14 +105,14 @@ bool MainWindow::LayerButton::onMouseButtonReleased(unsigned int button)
 { 
 	UI::Label::onMouseButtonReleased(button);
 	if(!button) {
-		mainWindow->canvas->set_active_layer(layer);
+		mainWindow->canvas->setActiveLayer(layer);
 	}
 	return true; 
 }
 
 uint32_t MainWindow::LayerButton::getBackGroundColour()
 {
-	if(layer == mainWindow->canvas->get_active_layer()) {
+	if(layer == mainWindow->canvas->getActiveLayer()) {
 		return 0x30300000;
 	}
 	else {
@@ -164,11 +180,9 @@ bool MainWindow::QuitButton::onMouseButtonReleased(unsigned int button)
 
 MainWindow::MainWindow(Canvas * canvas_) : canvas(canvas_)
 {
-	// UI::Button * button = new UI::Button("meme");
-	// widgets.push_back(button);
 	vector<UI::Widget *> layerLabels;
 
-	Layer * layer = canvas->get_first_layer();
+	Layer * layer = canvas->getFirstLayer();
 	while(1) {
 		if(layer->type == Layer::Type::LAYER) {
 			UI::Widget * layerNameButton = new LayerButton(this, layer);

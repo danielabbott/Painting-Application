@@ -46,6 +46,8 @@ class Canvas : public UI::Canvas
 
 	void createOpenGLImages();
 
+	// TODO Remove this. This is just for testing things
+	void create_layers();
 
 public:
 	Canvas(unsigned int width, unsigned int height)
@@ -53,14 +55,23 @@ public:
 
 	Canvas(unsigned int x, unsigned int y, unsigned int width, unsigned int height);
 
-	Layer * get_first_layer() const;
-	void set_active_layer(Layer * layer);
-	Layer * get_active_layer() const;
-	void clear_layer(Layer * layer);
-	void fill_layer(Layer * layer, uint32_t colour);
+	Layer * getFirstLayer() const;
+	void setActiveLayer(Layer * layer);
+	Layer * getActiveLayer() const;
+	void clearLayer(Layer * layer);
+	void fillLayer(Layer * layer, uint32_t colour);
 	void forceRedraw();
 
-	void initialise_canvas_display(unsigned int x, unsigned int y);
+
+	// This does not delete the layer object or it's image data
+	// The layer's children will also be removed
+	void removeLayer(Layer & layer);
+
+	void addLayerAfter(Layer & layer, Layer & newLayer);
+	void addLayerBefore(Layer & layer, Layer & newLayer);
+	// TODO: add_layer_as_first_child
+
+	void initialiseCanvasDisplay(unsigned int x, unsigned int y);
 
 	void freeCanvasResources();
 
