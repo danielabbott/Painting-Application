@@ -247,11 +247,12 @@ static inline void create_opengl_images(unsigned int canvasWidth, unsigned int c
 
 }
 
-
-void Canvas::initialiseCanvasDisplay(unsigned int x, unsigned int y)
+Canvas::Canvas(unsigned int width, unsigned int height) 
+: canvasWidth(width), canvasHeight(height)
 {
-	canvasX = x;
-	canvasY = y;
+	if(canvasWidth > max_texture_size() || canvasHeight > max_texture_size()) {
+		throw runtime_error("Canvas too big (exceeds OpenGL limitations)");
+	}
 
 	if(!globalCanvasResourcesAllocated) {
 
@@ -277,15 +278,6 @@ void Canvas::initialiseCanvasDisplay(unsigned int x, unsigned int y)
 		create_opengl_images(canvasWidth, canvasHeight);
 
 		globalCanvasResourcesAllocated = true;
-	}
-
-}
-
-Canvas::Canvas(unsigned int x, unsigned int y, unsigned int width, unsigned int height) 
-: UI::Canvas(x, y, width, height)
-{
-	if(canvasWidth > max_texture_size() || canvasHeight > max_texture_size()) {
-		throw runtime_error("Canvas too big (exceeds OpenGL limitations)");
 	}
 
 	canvasFrameBuffer = new FrameBuffer(ImageFormat::FMT_RGBA, canvasWidth, canvasHeight);

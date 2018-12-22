@@ -7,7 +7,10 @@
 class MainWindow : public UI::GUI 
 {
 	UI::Container * root;
-	Canvas * canvas;
+
+	CanvasViewPort * canvasView;
+
+	void create(::Canvas * canvas);
 
 
 	class MyButton : public UI::Button
@@ -93,5 +96,7 @@ class MainWindow : public UI::GUI
 
 public:
 	MainWindow(Canvas * canvas);
+	MainWindow(MainWindow const& m);
 	UI::Container * getRoot() override;
+	void centerCanvas();
 };

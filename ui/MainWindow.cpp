@@ -11,7 +11,7 @@ bool MainWindow::MyButton::onMouseButtonReleased(unsigned int button)
 	UI::Button::onMouseButtonReleased(button);
 	if(!button) {
 		// clear_layer(get_first_layer()->next);
-		mainWindow->canvas->fillLayer(mainWindow->canvas->getFirstLayer(), 0xffffffff);
+		mainWindow->canvasView->getCanvas()->fillLayer(mainWindow->canvasView->getCanvas()->getFirstLayer(), 0xffffffff);
 	}
 	return true; 
 }
@@ -57,17 +57,17 @@ bool MainWindow::LayerMoveUpButton::onMouseButtonReleased(unsigned int button)
 { 
 	UI::Button::onMouseButtonReleased(button);
 	if(!button && layer->next) {
-		bool isActive = layer == mainWindow->canvas->getActiveLayer();
+		bool isActive = layer == mainWindow->canvasView->getCanvas()->getActiveLayer();
 
 		LayerPtr above = layer->next;
-		mainWindow->canvas->removeLayer(layer);
-		mainWindow->canvas->addLayerAfter(above, layer);
+		mainWindow->canvasView->getCanvas()->removeLayer(layer);
+		mainWindow->canvasView->getCanvas()->addLayerAfter(above, layer);
 
 		if(isActive) {
-			mainWindow->canvas->setActiveLayer(layer);
+			mainWindow->canvasView->getCanvas()->setActiveLayer(layer);
 		}
 
-		mainWindow->canvas->forceRedraw();
+		mainWindow->canvasView->getCanvas()->forceRedraw();
 		mainWindow->setNeedsRecreating();
 	}
 	return true; 
@@ -81,17 +81,17 @@ bool MainWindow::LayerMoveDownButton::onMouseButtonReleased(unsigned int button)
 { 
 	UI::Button::onMouseButtonReleased(button);
 	if(!button && layer->prev) {
-		bool isActive = layer == mainWindow->canvas->getActiveLayer();
+		bool isActive = layer == mainWindow->canvasView->getCanvas()->getActiveLayer();
 
 		LayerPtr below = layer->prev;
-		mainWindow->canvas->removeLayer(layer);
-		mainWindow->canvas->addLayerBefore(below, layer);
+		mainWindow->canvasView->getCanvas()->removeLayer(layer);
+		mainWindow->canvasView->getCanvas()->addLayerBefore(below, layer);
 
 		if(isActive) {
-			mainWindow->canvas->setActiveLayer(layer);
+			mainWindow->canvasView->getCanvas()->setActiveLayer(layer);
 		}
 
-		mainWindow->canvas->forceRedraw();
+		mainWindow->canvasView->getCanvas()->forceRedraw();
 		mainWindow->setNeedsRecreating();
 	}
 	return true; 
@@ -105,14 +105,14 @@ bool MainWindow::LayerButton::onMouseButtonReleased(unsigned int button)
 { 
 	UI::Label::onMouseButtonReleased(button);
 	if(!button) {
-		mainWindow->canvas->setActiveLayer(layer);
+		mainWindow->canvasView->getCanvas()->setActiveLayer(layer);
 	}
 	return true; 
 }
 
 uint32_t MainWindow::LayerButton::getBackGroundColour()
 {
-	if(layer == mainWindow->canvas->getActiveLayer()) {
+	if(layer == mainWindow->canvasView->getCanvas()->getActiveLayer()) {
 		return 0x30300000;
 	}
 	else {
@@ -128,7 +128,7 @@ bool MainWindow::LayerVisibilityButton::onMouseButtonReleased(unsigned int butto
 	UI::Label::onMouseButtonReleased(button);
 	if(!button) {
 		layer->visible = !layer->visible;
-		mainWindow->canvas->forceRedraw();
+		mainWindow->canvasView->getCanvas()->forceRedraw();
 	}
 	return true; 
 }
@@ -178,7 +178,7 @@ bool MainWindow::QuitButton::onMouseButtonReleased(unsigned int button)
 	return true; 
 }
 
-MainWindow::MainWindow(Canvas * canvas_) : canvas(canvas_)
+void MainWindow::create(::Canvas * canvas)
 {
 	vector<UI::Widget *> layerLabels;
 
@@ -233,12 +233,35 @@ MainWindow::MainWindow(Canvas * canvas_) : canvas(canvas_)
 	UI::MenuBar * topMenuBar = new UI::MenuBar(vector<UI::Widget *> { fileMenuButton }, 1, 0, 0, 0, 0xff404040, UI::Container::LayoutManager::FLOW_ACROSS);
 
 
+	canvasView = new CanvasViewPort(canvas, 1, 1, 0, 0);
 
-	root = new UI::Container(vector<UI::Widget *> {topMenuBar, layersContainer, canvas}, 0, 0, 0, 0, 0, UI::Container::LayoutManager::BORDER);	
+
+	root = new UI::Container(vector<UI::Widget *> {topMenuBar, layersContainer, canvasView}, 0, 0, 0, 0, 0, UI::Container::LayoutManager::BORDER);	
 	widgets.push_back(root);
+}
+
+MainWindow::MainWindow(Canvas * canvas)
+{
+	create(canvas);
+}
+
+void MainWindow::centerCanvas()
+{
+
+	unsigned int x, y, canvasWidth, canvasHeight;
+	canvasView->getArea(x, y, canvasWidth, canvasHeight);
+	canvasView->setCanvasPosition(canvasWidth/2, canvasHeight/2);
 }
 
 UI::Container * MainWindow::getRoot()
 {
 	return root;
+}
+
+MainWindow::MainWindow(MainWindow const& m)
+{
+	create(m.canvasView->getCanvas());
+
+	canvasView->setCanvasPosition(m.canvasView->getCanvasPositionX(), m.canvasView->getCanvasPositionY());
+	canvasView->setCanvasZoom(m.canvasView->getCanvasZoom());
 }

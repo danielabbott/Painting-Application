@@ -109,23 +109,22 @@ int main(int argc, char ** argv)
 
 
 	UI::initialise_ui();
-	canvas = new Canvas(1, 1, 1024, 768); // TODO: GUI layout could change, separate canvas widget from actual canvas data
+	canvas = new Canvas(3000, 2000);
 
-
-	UI::GUI * mainWindow = new MainWindow(canvas);
+	MainWindow * mainWindow = new MainWindow(canvas);
 	set_root_container(mainWindow->getRoot());
+	mainWindow->centerCanvas();
 
 
-	unsigned int x, y, canvasWidth, canvasHeight;
-	canvas->getArea(x, y, canvasWidth, canvasHeight);
-	canvas->initialiseCanvasDisplay(canvasWidth/2, canvasHeight/2);
+	
 
 	auto lastUpdateTime = chrono::high_resolution_clock::now();
 
 	while(!window_should_close()) {
 		if(mainWindow->needsRecreating()) {
+			MainWindow * newMainWindow = new MainWindow(*mainWindow);
 			delete mainWindow;
-			mainWindow = new MainWindow(canvas);
+			mainWindow = newMainWindow;
 			set_root_container(mainWindow->getRoot());
 		}
 

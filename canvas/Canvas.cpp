@@ -57,118 +57,125 @@ LayerPtr Canvas::getActiveLayer() const
 }
 
 
-void Canvas::widgetCoordsToCanvasCoords(unsigned int cursorX, unsigned int cursorY, int & x, int & y)
+void CanvasViewPort::widgetCoordsToCanvasCoords(unsigned int cursorX, unsigned int cursorY, int & x, int & y)
 {
 	unsigned int uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight;
 	getArea(uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight);
 
-	float canvasOnscreenWidth = canvasWidth * canvasZoom;
-	float canvasOnscreenHeight = canvasHeight * canvasZoom;
+	float canvasOnscreenWidth = getCanvas()->getWidth() * canvasZoom;
+	float canvasOnscreenHeight = getCanvas()->getHeight() * canvasZoom;
 
-	x = ((((int)cursorX - canvasX) / canvasOnscreenWidth) + 0.5f) * (int)canvasWidth;
-	y = ((((int)cursorY - canvasY) / canvasOnscreenHeight) + 0.5f) * (int)canvasHeight;
+	x = ((((int)cursorX - canvasX) / canvasOnscreenWidth) + 0.5f) * (int)getCanvas()->getWidth();
+	y = ((((int)cursorY - canvasY) / canvasOnscreenHeight) + 0.5f) * (int)getCanvas()->getHeight();
 }
 
 
-bool Canvas::onMouseButtonReleasedOutsideWidget(unsigned int button)
+bool CanvasViewPort::onMouseButtonReleasedOutsideWidget(unsigned int button)
 {
 	return onMouseButtonReleased(button);
 }
 
-bool Canvas::onMouseButtonReleased(unsigned int button)
+bool Canvas::finaliseStroke()
+{
+	if(!activeLayer) {
+		// No layer is active so we weren't drawing. stop here.
+		return false;
+	}
+
+	// Stylus was lifted up, merge the stroke layer with the active layer and clear the stroke layer
+
+	// Bind the image-format-specific shader program and temporary framebuffer
+
+	if(activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
+		bind_shader_program(canvasResources.strokeMergeShaderProgramRGBA);
+		glUniform4f(canvasResources.strokeMergeColourLocationRGBA, canvasResources.activeColour[0], canvasResources.activeColour[1], 
+			canvasResources.activeColour[2], canvasResources.activeColour[3]);
+		canvasResources.imageBlockTempLayerRGBA->bindFrameBuffer();
+	}
+	else if(activeLayer->imageFormat == ImageFormat::FMT_RG) {
+		bind_shader_program(canvasResources.strokeMergeShaderProgramRG);
+		glUniform2f(canvasResources.strokeMergeColourLocationRG, canvasResources.activeColour[0], canvasResources.activeColour[3]);
+		canvasResources.imageBlockTempLayerRG->bindFrameBuffer();
+	}
+	else {
+		bind_shader_program(canvasResources.strokeMergeShaderProgramR);
+		glUniform1f(canvasResources.strokeMergeColourLocationR, canvasResources.activeColour[3]);
+		canvasResources.imageBlockTempLayerR->bindFrameBuffer();
+	}
+
+	glActiveTexture(GL_TEXTURE0);
+	canvasResources.strokeLayer->bindTexture();
+
+	// glDisable(GL_BLEND);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ZERO);
+
+	glBindVertexArray(canvasResources.vaoId);
+
+	glActiveTexture(GL_TEXTURE1);
+	for(ImageBlock & block : imageBlocks) {
+		if(block.hasStrokeData) {
+			block.bindTexture(activeLayer);
+
+			// Set area to merge and active layer index
+
+			// TODO: Merge only dirty region then copy only dirty region
+
+			// float strokeImageX = (((block.getX() + block.getDirtyMinX()) / (float)canvasWidth) * 2.0f) - 1.0f;
+			// float strokeImageY = (((1.0f - (block.getY() + block.getDirtyMinY() + block.getDirtyHeight()) / (float)canvasHeight) * 2.0f) - 1.0f);
+			// float strokeImageWidth  = ((block.getDirtyWidth() / (float)canvasWidth) * 2.0f);
+			// float strokeImageHeight = ((block.getDirtyHeight() / (float)canvasHeight) * 2.0f);
+
+			float strokeImageX = (block.getX() / (float)canvasWidth);
+			float strokeImageY = 1.0f - (block.getY() + image_block_size()) / (float)canvasHeight;
+			float strokeImageWidth  = image_block_size() / (float)canvasWidth;
+			float strokeImageHeight = image_block_size() / (float)canvasHeight;
+
+
+
+
+			if (activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
+				glUniform4f(canvasResources.strokeMergeCoordsLocationRGBA, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
+				glUniform1f(canvasResources.strokeMergeIndexLocationRGBA, block.indexOf(activeLayer));
+			}
+			else if (activeLayer->imageFormat == ImageFormat::FMT_RG) {
+				glUniform4f(canvasResources.strokeMergeCoordsLocationRG, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
+				glUniform1f(canvasResources.strokeMergeIndexLocationRG, block.indexOf(activeLayer));
+			}
+			else {
+				glUniform4f(canvasResources.strokeMergeCoordsLocationR, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
+				glUniform1f(canvasResources.strokeMergeIndexLocationR, block.indexOf(activeLayer));
+			}
+
+			// Merge stroke onto layer and store in temporary framebuffer
+
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+
+			// Copy the data from the temporary framebuffer to the image block array texture
+
+			// TODO: Copy only dirty region
+
+			// block.copyTo(activeLayer, block.getDirtyMinX(), block.getDirtyMinY(), block.getDirtyWidth(), block.getDirtyHeight());
+
+			block.copyTo(activeLayer);
+
+
+			block.hasStrokeData = false;
+		}
+	}
+
+	canvasResources.strokeLayer->clear();
+
+	return true;
+}
+
+bool CanvasViewPort::onMouseButtonReleased(unsigned int button)
 {
 	if(button == 0) {
 		clog << "Pen released" << endl;
 		penDown = false;
 
-		if(!activeLayer) {
-			// No layer is active so we weren't drawing. stop here.
-			return false;
-		}
-
-		// Stylus was lifted up, merge the stroke layer with the active layer and clear the stroke layer
-
-		// Bind the image-format-specific shader program and temporary framebuffer
-
-		if(activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
-			bind_shader_program(canvasResources.strokeMergeShaderProgramRGBA);
-			glUniform4f(canvasResources.strokeMergeColourLocationRGBA, canvasResources.activeColour[0], canvasResources.activeColour[1], 
-				canvasResources.activeColour[2], canvasResources.activeColour[3]);
-			canvasResources.imageBlockTempLayerRGBA->bindFrameBuffer();
-		}
-		else if(activeLayer->imageFormat == ImageFormat::FMT_RG) {
-			bind_shader_program(canvasResources.strokeMergeShaderProgramRG);
-			glUniform2f(canvasResources.strokeMergeColourLocationRG, canvasResources.activeColour[0], canvasResources.activeColour[3]);
-			canvasResources.imageBlockTempLayerRG->bindFrameBuffer();
-		}
-		else {
-			bind_shader_program(canvasResources.strokeMergeShaderProgramR);
-			glUniform1f(canvasResources.strokeMergeColourLocationR, canvasResources.activeColour[3]);
-			canvasResources.imageBlockTempLayerR->bindFrameBuffer();
-		}
-
-		glActiveTexture(GL_TEXTURE0);
-		canvasResources.strokeLayer->bindTexture();
-
-		// glDisable(GL_BLEND);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ZERO);
-
-		glBindVertexArray(canvasResources.vaoId);
-
-		glActiveTexture(GL_TEXTURE1);
-		for(ImageBlock & block : imageBlocks) {
-			if(block.hasStrokeData) {
-				block.bindTexture(activeLayer);
-
-				// Set area to merge and active layer index
-
-				// TODO: Merge only dirty region then copy only dirty region
-
-				// float strokeImageX = (((block.getX() + block.getDirtyMinX()) / (float)canvasWidth) * 2.0f) - 1.0f;
-				// float strokeImageY = (((1.0f - (block.getY() + block.getDirtyMinY() + block.getDirtyHeight()) / (float)canvasHeight) * 2.0f) - 1.0f);
-				// float strokeImageWidth  = ((block.getDirtyWidth() / (float)canvasWidth) * 2.0f);
-				// float strokeImageHeight = ((block.getDirtyHeight() / (float)canvasHeight) * 2.0f);
-
-				float strokeImageX = (block.getX() / (float)canvasWidth);
-				float strokeImageY = 1.0f - (block.getY() + image_block_size()) / (float)canvasHeight;
-				float strokeImageWidth  = image_block_size() / (float)canvasWidth;
-				float strokeImageHeight = image_block_size() / (float)canvasHeight;
-
-
-
-
-				if (activeLayer->imageFormat == ImageFormat::FMT_RGBA) {
-					glUniform4f(canvasResources.strokeMergeCoordsLocationRGBA, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
-					glUniform1f(canvasResources.strokeMergeIndexLocationRGBA, block.indexOf(activeLayer));
-				}
-				else if (activeLayer->imageFormat == ImageFormat::FMT_RG) {
-					glUniform4f(canvasResources.strokeMergeCoordsLocationRG, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
-					glUniform1f(canvasResources.strokeMergeIndexLocationRG, block.indexOf(activeLayer));
-				}
-				else {
-					glUniform4f(canvasResources.strokeMergeCoordsLocationR, strokeImageX, strokeImageY, strokeImageWidth, strokeImageHeight);
-					glUniform1f(canvasResources.strokeMergeIndexLocationR, block.indexOf(activeLayer));
-				}
-
-				// Merge stroke onto layer and store in temporary framebuffer
-
-				glDrawArrays(GL_TRIANGLES, 0, 6);
-
-				// Copy the data from the temporary framebuffer to the image block array texture
-
-				// TODO: Copy only dirty region
-
-				// block.copyTo(activeLayer, block.getDirtyMinX(), block.getDirtyMinY(), block.getDirtyWidth(), block.getDirtyHeight());
-
-				block.copyTo(activeLayer);
-
-
-				block.hasStrokeData = false;
-			}
-		}
-
-		canvasResources.strokeLayer->clear();
+		return getCanvas()->finaliseStroke();
 	}
 	else if (button == 2) {
 		// Scroll wheel
@@ -180,7 +187,7 @@ bool Canvas::onMouseButtonReleased(unsigned int button)
 
 
 
-bool Canvas::onClicked(unsigned int button, unsigned int x, unsigned int y)
+bool CanvasViewPort::onClicked(unsigned int button, unsigned int x, unsigned int y)
 {
 	if(button == 0) {
 		clog << "Pen pressed" << endl;
@@ -236,21 +243,8 @@ void set_canvas_input_device(bool mouse)
 	useMouse = mouse;
 }
 
-bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pressure)
+bool Canvas::stroke(unsigned int prevCanvasCoordX, unsigned int prevCanvasCoordY, unsigned int canvasXcoord, unsigned int canvasYcoord, float pressure)
 {
-	if(panning) {
-		canvasX += (int)cursorX - (int)panningPrevCursorX;
-		canvasY += (int)cursorY - (int)panningPrevCursorY;
-
-		panningPrevCursorX = cursorX;
-		panningPrevCursorY = cursorY;
-
-		return true;
-	}
-	if(!penDown) {
-		return false;
-	}
-
 	if(useMouse || !tablet_detected()) {
 		pressure = 1;
 	}
@@ -286,9 +280,6 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 	//Reduce opacity when using add blend mode
 	float alphaMultiply = testBrush.blendMode == Brush::BlendMode::ADD ? 0.2f : 1.0f;
 
-	int canvasXcoord;
-	int canvasYcoord;
-	widgetCoordsToCanvasCoords(cursorX, cursorY, canvasXcoord, canvasYcoord);
 
 	int diffX = canvasXcoord - prevCanvasCoordX;
 	int diffY = canvasYcoord - prevCanvasCoordY;
@@ -302,8 +293,6 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 
 	drawStroke(canvasXcoord, canvasYcoord, pressure, size, alphaMultiply);
 
-	prevCanvasCoordX = canvasXcoord;
-	prevCanvasCoordY = canvasYcoord;
 
 	if(testBrush.blendMode != Brush::BlendMode::ADD) {
 		glBlendEquation(GL_FUNC_ADD);
@@ -311,10 +300,36 @@ bool Canvas::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pres
 
 	canvasDirty = true;
 	return true;
-
 }
 
-bool Canvas::onScroll(unsigned int x, unsigned int y, int direction)
+bool CanvasViewPort::onMouseMoved(unsigned int cursorX, unsigned int cursorY, float pressure)
+{
+	if(panning) {
+		canvasX += (int)cursorX - (int)panningPrevCursorX;
+		canvasY += (int)cursorY - (int)panningPrevCursorY;
+
+		panningPrevCursorX = cursorX;
+		panningPrevCursorY = cursorY;
+
+		return true;
+	}
+	if(!penDown) {
+		return false;
+	}
+
+	int canvasXcoord;
+	int canvasYcoord;
+	widgetCoordsToCanvasCoords(cursorX, cursorY, canvasXcoord, canvasYcoord);
+	
+	bool canvasDirty = getCanvas()->stroke(prevCanvasCoordX, prevCanvasCoordY, canvasXcoord, canvasYcoord, pressure);
+	if(canvasDirty) {
+		prevCanvasCoordX = canvasXcoord;
+		prevCanvasCoordY = canvasYcoord;
+	}
+	return canvasDirty;
+}
+
+bool CanvasViewPort::onScroll(unsigned int x, unsigned int y, int direction)
 {	
 	// Get canvas coordinates of mouse 
 	int targetCanvasX, targetCanvasY;
@@ -327,7 +342,7 @@ bool Canvas::onScroll(unsigned int x, unsigned int y, int direction)
 		canvasZoom /= -direction*2;
 	}
 
-	float smallestZoom = 8 / (float)min(canvasWidth, canvasHeight);
+	float smallestZoom = 8 / (float)min(getCanvas()->getWidth(), getCanvas()->getHeight());
 
 	if(canvasZoom < smallestZoom) {
 		canvasZoom = smallestZoom;
@@ -343,8 +358,8 @@ bool Canvas::onScroll(unsigned int x, unsigned int y, int direction)
 	unsigned int uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight;
 	getArea(uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight);
 
-	float distanceX = (targetCanvasX - (int)canvasWidth/2) * canvasZoom;
-	float distanceY = (targetCanvasY - (int)canvasHeight/2) * canvasZoom;
+	float distanceX = (targetCanvasX - (int)getCanvas()->getWidth()/2) * canvasZoom;
+	float distanceY = (targetCanvasY - (int)getCanvas()->getHeight()/2) * canvasZoom;
 
 	canvasX = (int)x - distanceX;
 	canvasY = (int)y - distanceY;
@@ -456,3 +471,53 @@ void Canvas::addLayerBefore(LayerPtr layer, LayerPtr newLayer)
 		newLayer->parent = layer->parent;
 	}
 }
+
+Canvas * CanvasViewPort::getCanvas() 
+{
+ 	return canvas;
+}
+
+CanvasViewPort::CanvasViewPort(::Canvas * c, unsigned int x, unsigned int y, unsigned int width, unsigned int height)
+: UI::Canvas(x, y, width, height), canvas(c)
+{
+
+}
+
+unsigned int Canvas::getWidth()
+{
+	return canvasWidth;
+}
+
+unsigned int Canvas::getHeight()
+{
+	return canvasHeight;
+}
+
+
+void CanvasViewPort::setCanvasPosition(int x, int y)
+{
+	canvasX = x;
+	canvasY = y;
+}
+
+
+void CanvasViewPort::setCanvasZoom(float z)
+{
+	canvasZoom = z;
+}
+
+int CanvasViewPort::getCanvasPositionX()
+{
+	return canvasX;
+}
+
+int CanvasViewPort::getCanvasPositionY()
+{
+	return canvasY;
+}
+
+float CanvasViewPort::getCanvasZoom()
+{
+	return canvasZoom;
+}
+

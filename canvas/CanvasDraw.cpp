@@ -10,13 +10,8 @@ using namespace std;
 
 extern CanvasResources canvasResources;
 
-void Canvas::draw() {
-	unsigned int windowWidth, windowHeight;
-	UI::get_window_dimensions(windowWidth, windowHeight);
-
-	unsigned int uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight;
-	getArea(uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight);
-
+void Canvas::draw()
+{
 	glBindVertexArray(canvasResources.vaoId);
 	if(canvasDirty) {
 		bind_shader_program(canvasResources.shaderProgram);
@@ -161,14 +156,32 @@ void Canvas::draw() {
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		}
 	}
+	canvasDirty = false;
+}
+
+void Canvas::bindFrameBufferTexture()
+{
+	canvasFrameBuffer->bindTexture();
+}
+
+void CanvasViewPort::draw() {
+	getCanvas()->draw();
+	
 
 	// Draw canvas texture on screen
+
+	unsigned int windowWidth, windowHeight;
+	UI::get_window_dimensions(windowWidth, windowHeight);
+
+	unsigned int uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight;
+	getArea(uiCanvasX, uiCanvasY, uiCanvasWidth, uiCanvasHeight);
+
 
 
 	bind_default_framebuffer();
 	bind_shader_program(canvasResources.canvasTextureShaderProgram);
 	glActiveTexture(GL_TEXTURE0);
-	canvasFrameBuffer->bindTexture();
+	getCanvas()->bindFrameBufferTexture();
 
 	glm::mat4 m = 
 		glm::ortho(0.0f, (float)windowWidth, (float)windowHeight, 0.0f)
@@ -176,7 +189,7 @@ void Canvas::draw() {
 			(float)((int)uiCanvasX + canvasX),
 			(float)((int)uiCanvasY + canvasY),
 		0.0f))
-		* glm::scale(glm::mat4(1.0f), glm::vec3((float)canvasWidth * canvasZoom, (float)canvasHeight * canvasZoom, 1.0))
+		* glm::scale(glm::mat4(1.0f), glm::vec3((float)getCanvas()->getWidth() * canvasZoom, (float)getCanvas()->getHeight() * canvasZoom, 1.0))
 		* glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, -0.5f, 0.0f))
 	;
 
@@ -184,6 +197,5 @@ void Canvas::draw() {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
-	canvasDirty = false;
 
 }
