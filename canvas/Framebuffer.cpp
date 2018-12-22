@@ -170,7 +170,7 @@ void FrameBuffer::clear()
 
 FrameBuffer::~FrameBuffer()
 {
-	if(!frameBufferName) {
+	if(frameBufferName) {
 		glDeleteTextures(1, &backingTextureId);
 		glDeleteFramebuffers(1, &frameBufferName);
 	}
