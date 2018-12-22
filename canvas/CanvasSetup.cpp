@@ -294,9 +294,9 @@ Canvas::Canvas(unsigned int x, unsigned int y, unsigned int width, unsigned int 
 
 	// create test layers
 
-	Layer * rootLayer = new Layer();
-	Layer * layer1 = new Layer();
-	Layer * layer2 = new Layer();
+	LayerPtr rootLayer = make_shared<Layer>();
+	LayerPtr layer1 = make_shared<Layer>();
+	LayerPtr layer2 = make_shared<Layer>();
 
 	layer1->type = Layer::Type::LAYER;
 	layer1->name = "bottom layer";

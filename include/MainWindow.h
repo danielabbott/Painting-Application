@@ -32,46 +32,46 @@ class MainWindow : public UI::GUI
 	class LayerMoveUpButton : public UI::Button
 	{
 		MainWindow * mainWindow;
-		Layer * layer;
+		LayerPtr layer;
 
 		virtual bool onMouseButtonReleased(unsigned int button) override;
 	public:
-		LayerMoveUpButton(MainWindow * mw, Layer * layer_);
+		LayerMoveUpButton(MainWindow * mw, LayerPtr layer_);
 	};
 
 	class LayerMoveDownButton : public UI::Button
 	{
 		MainWindow * mainWindow;
-		Layer * layer;
+		LayerPtr layer;
 
 		virtual bool onMouseButtonReleased(unsigned int button) override;
 	public:
-		LayerMoveDownButton(MainWindow * mw, Layer * layer_);
+		LayerMoveDownButton(MainWindow * mw, LayerPtr layer_);
 	};
 
 
 	class LayerButton : public UI::Label
 	{
 		MainWindow * mainWindow;
-		Layer * layer;
+		LayerPtr layer;
 
 		virtual bool onMouseButtonReleased(unsigned int button) override;
 
 		virtual uint32_t getBackGroundColour() override;
 	public:
-		LayerButton(MainWindow * mw, Layer * layer_);
+		LayerButton(MainWindow * mw, LayerPtr layer_);
 	};
 
 	class LayerVisibilityButton : public UI::Label
 	{
 		MainWindow * mainWindow;
-		Layer * layer;
+		LayerPtr layer;
 
 		virtual bool onMouseButtonReleased(unsigned int button) override;
 
 		virtual std::string const& getText();
 	public:
-		LayerVisibilityButton(MainWindow * mw,Layer * layer_);
+		LayerVisibilityButton(MainWindow * mw,LayerPtr layer_);
 	};
 
 	class ColourSetter : public UI::Button

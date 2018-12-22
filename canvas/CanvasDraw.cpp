@@ -33,7 +33,7 @@ void Canvas::draw() {
 			block.setClean();
 
 			assert(firstLayer);
-			Layer * layer = firstLayer;
+			LayerPtr layer = firstLayer;
 			vector<Op> ops;
 
 			canvasResources.uniformData.baseColour[0] = canvasResources.uniformData.baseColour[1] = 

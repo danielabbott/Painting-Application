@@ -33,7 +33,7 @@ public:
 
 	// Information about this image block on one particular layer
 	struct LayerData {
-		Layer * layer;
+		LayerPtr layer;
 
 		enum class DataType {
 			SOLID_COLOUR,
@@ -52,8 +52,8 @@ public:
 		// Value only valid if != -1
 		int arrayTextureIndex = -1;
 
-		LayerData(Layer * l) : layer(l) {}
-		LayerData(Layer * l, ArrayTexture & arrayTexture, unsigned int arrayTextureIndex_) 
+		LayerData(LayerPtr l) : layer(l) {}
+		LayerData(LayerPtr l, ArrayTexture & arrayTexture, unsigned int arrayTextureIndex_) 
 		: layer(l), frameBuffer(new ArrayTextureFrameBuffer(arrayTexture, arrayTextureIndex_)), arrayTextureIndex(arrayTextureIndex_) {}
 
 		~LayerData() 
@@ -97,10 +97,10 @@ public:
 	unsigned int getX() const { return x; }
 	unsigned int getY() const { return y; }
 
-	void bindFrameBuffer(Layer * layer);
-	void bindTexture(Layer * layer) const;
-	void copyTo(Layer * layer);
-	void copyTo(Layer * layer, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
+	void bindFrameBuffer(LayerPtr layer);
+	void bindTexture(LayerPtr layer) const;
+	void copyTo(LayerPtr layer);
+	void copyTo(LayerPtr layer, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
 
 	std::deque<LayerData> const& getLayerData() { return layers; }
 
@@ -109,12 +109,12 @@ public:
 	const ArrayTexture * getArrayTextureR() { return arrayTextureR; }
 
 	// Overwrites pixels, no blending is done
-	void uploadImage(Layer * layer, unsigned int x, unsigned int y, unsigned int width, unsigned int height, void * data, unsigned int stride, ImageFormat sourceType);
+	void uploadImage(LayerPtr layer, unsigned int x, unsigned int y, unsigned int width, unsigned int height, void * data, unsigned int stride, ImageFormat sourceType);
 
 	// Returns -1 if no video memory is allocated for that layer
-	int indexOf(Layer * layer);
+	int indexOf(LayerPtr layer);
 
-	void fillLayer(Layer * layer, uint32_t colour);
+	void fillLayer(LayerPtr layer, uint32_t colour);
 
 	~ImageBlock();
 };

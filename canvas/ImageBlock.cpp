@@ -20,7 +20,7 @@ ImageBlock::ImageBlock(unsigned int x_, unsigned int y_, Canvas const& canvas)
 	unsigned int numRG = 0;
 	unsigned int numR = 0;
 
-	Layer * layer = canvas.getFirstLayer();
+	LayerPtr layer = canvas.getFirstLayer();
 
 	if(!layer) {
 		// No layers, use default state
@@ -134,7 +134,7 @@ ImageBlock::~ImageBlock()
 	delete arrayTextureRGBA;
 }
 
-int ImageBlock::indexOf(Layer * layer)
+int ImageBlock::indexOf(LayerPtr layer)
 {
 	assert(layer);
 
@@ -149,7 +149,7 @@ int ImageBlock::indexOf(Layer * layer)
 	return -1;
 }
 
-void ImageBlock::bindFrameBuffer(Layer * layer)
+void ImageBlock::bindFrameBuffer(LayerPtr layer)
 {
 	assert(layer);
 
@@ -162,7 +162,7 @@ void ImageBlock::bindFrameBuffer(Layer * layer)
 	layers[index].dataType = LayerData::DataType::ACTUAL_DATA;
 }
 
-void ImageBlock::bindTexture(Layer * layer) const
+void ImageBlock::bindTexture(LayerPtr layer) const
 {
 	assert(layer);
 
@@ -170,13 +170,14 @@ void ImageBlock::bindTexture(Layer * layer) const
 }
 
 
-void ImageBlock::copyTo(Layer * layer)
+void ImageBlock::copyTo(LayerPtr layer)
 {
+	assert(layer);
 	copyTo(layer, 0, 0, image_block_size(), image_block_size());
 }
 
 
-void ImageBlock::copyTo(Layer * layer, unsigned int x, unsigned int y, unsigned int w, unsigned int h)
+void ImageBlock::copyTo(LayerPtr layer, unsigned int x, unsigned int y, unsigned int w, unsigned int h)
 {
 	assert(layer);
 
@@ -198,7 +199,7 @@ void ImageBlock::copyTo(Layer * layer, unsigned int x, unsigned int y, unsigned 
 	}
 }
 
-void ImageBlock::uploadImage(Layer * layer, unsigned int x, unsigned int y, unsigned int width, unsigned int height, void * data, unsigned int stride, ImageFormat sourceType)
+void ImageBlock::uploadImage(LayerPtr layer, unsigned int x, unsigned int y, unsigned int width, unsigned int height, void * data, unsigned int stride, ImageFormat sourceType)
 {
 	assert(layer);
 
@@ -220,7 +221,7 @@ void ImageBlock::uploadImage(Layer * layer, unsigned int x, unsigned int y, unsi
 	}
 }
 
-void ImageBlock::fillLayer(Layer * layer, uint32_t colour)
+void ImageBlock::fillLayer(LayerPtr layer, uint32_t colour)
 {
 	assert(layer);
 

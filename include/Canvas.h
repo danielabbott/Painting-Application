@@ -4,6 +4,7 @@
 #include <UI.h>
 #include <Layer.h>
 #include <deque>
+#include <memory>
 #include <FrameBuffer.h>
 #include <ImageBlock.h>
 
@@ -29,8 +30,8 @@ class Canvas : public UI::Canvas
 	bool panning = false;
 	unsigned int panningPrevCursorX, panningPrevCursorY;
 
-	Layer * firstLayer = nullptr;
-	Layer * activeLayer = nullptr;
+	LayerPtr firstLayer = nullptr;
+	LayerPtr activeLayer = nullptr;
 
 	bool penDown = false;
 	
@@ -55,20 +56,20 @@ public:
 
 	Canvas(unsigned int x, unsigned int y, unsigned int width, unsigned int height);
 
-	Layer * getFirstLayer() const;
-	void setActiveLayer(Layer * layer);
-	Layer * getActiveLayer() const;
-	void clearLayer(Layer * layer);
-	void fillLayer(Layer * layer, uint32_t colour);
+	LayerPtr getFirstLayer() const;
+	void setActiveLayer(LayerPtr layer);
+	LayerPtr getActiveLayer() const;
+	void clearLayer(LayerPtr layer);
+	void fillLayer(LayerPtr layer, uint32_t colour);
 	void forceRedraw();
 
 
 	// This does not delete the layer object or it's image data
 	// The layer's children will also be removed
-	void removeLayer(Layer & layer);
+	void removeLayer(LayerPtr layer);
 
-	void addLayerAfter(Layer & layer, Layer & newLayer);
-	void addLayerBefore(Layer & layer, Layer & newLayer);
+	void addLayerAfter(LayerPtr layer, LayerPtr newLayer);
+	void addLayerBefore(LayerPtr layer, LayerPtr newLayer);
 	// TODO: add_layer_as_first_child
 
 	void initialiseCanvasDisplay(unsigned int x, unsigned int y);

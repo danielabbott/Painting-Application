@@ -1,7 +1,11 @@
 #pragma once
 
 #include <string>
+#include <memory>
 #include <ArrayTexture.h> // For ImageFormat enum
+
+struct Layer;
+typedef std::shared_ptr<Layer> LayerPtr;
 
 struct Layer {
 	enum class Type {
@@ -20,16 +24,16 @@ struct Layer {
 
 	Mode mode = Mode::BLEND_MODE_NORMAL;
 
-	Layer * firstChild = nullptr;
-	Layer * next = nullptr; // The layer above
-	Layer * prev = nullptr;
-	Layer * parent = nullptr;
+	LayerPtr firstChild = nullptr;
+	LayerPtr next = nullptr; // The layer above
+	LayerPtr prev = nullptr;
+	LayerPtr parent = nullptr;
 
 	bool visible = true;
 
 	Layer() {}
 	Layer(std::string name_) : type(Type::LAYER), name(name_) {}
 
-	Layer * getNext();
+	LayerPtr getNext();
 };
 

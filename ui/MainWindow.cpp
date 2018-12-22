@@ -59,10 +59,10 @@ bool MainWindow::LayerMoveUpButton::onMouseButtonReleased(unsigned int button)
 	if(!button && layer->next) {
 		bool isActive = layer == mainWindow->canvas->getActiveLayer();
 
-		Layer * above = layer->next;
-		mainWindow->canvas->removeLayer(*layer);
-		mainWindow->canvas->addLayerAfter(*above, *layer);
-		
+		LayerPtr above = layer->next;
+		mainWindow->canvas->removeLayer(layer);
+		mainWindow->canvas->addLayerAfter(above, layer);
+
 		if(isActive) {
 			mainWindow->canvas->setActiveLayer(layer);
 		}
@@ -73,7 +73,7 @@ bool MainWindow::LayerMoveUpButton::onMouseButtonReleased(unsigned int button)
 	return true; 
 }
 
-MainWindow::LayerMoveUpButton::LayerMoveUpButton(MainWindow * mw, Layer * layer_) 
+MainWindow::LayerMoveUpButton::LayerMoveUpButton(MainWindow * mw, LayerPtr layer_) 
 : UI::Button("^", 1, 0, 20, 0), mainWindow(mw), layer(layer_) {}
 
 
@@ -83,9 +83,9 @@ bool MainWindow::LayerMoveDownButton::onMouseButtonReleased(unsigned int button)
 	if(!button && layer->prev) {
 		bool isActive = layer == mainWindow->canvas->getActiveLayer();
 
-		Layer * below = layer->prev;
-		mainWindow->canvas->removeLayer(*layer);
-		mainWindow->canvas->addLayerBefore(*below, *layer);
+		LayerPtr below = layer->prev;
+		mainWindow->canvas->removeLayer(layer);
+		mainWindow->canvas->addLayerBefore(below, layer);
 
 		if(isActive) {
 			mainWindow->canvas->setActiveLayer(layer);
@@ -97,7 +97,7 @@ bool MainWindow::LayerMoveDownButton::onMouseButtonReleased(unsigned int button)
 	return true; 
 }
 
-MainWindow::LayerMoveDownButton::LayerMoveDownButton(MainWindow * mw, Layer * layer_)
+MainWindow::LayerMoveDownButton::LayerMoveDownButton(MainWindow * mw, LayerPtr layer_)
 : UI::Button("\\/", 1, 0, 20, 0), mainWindow(mw), layer(layer_) {}
 
 
@@ -120,7 +120,7 @@ uint32_t MainWindow::LayerButton::getBackGroundColour()
 	}
 }
 
-MainWindow::LayerButton::LayerButton(MainWindow * mw, Layer * layer_)
+MainWindow::LayerButton::LayerButton(MainWindow * mw, LayerPtr layer_)
 : UI::Label(layer_->name, 0, 0, 100, 0), mainWindow(mw), layer(layer_) {}
 
 bool MainWindow::LayerVisibilityButton::onMouseButtonReleased(unsigned int button)
@@ -145,7 +145,7 @@ string const& MainWindow::LayerVisibilityButton::getText()
 	}
 }
 
-MainWindow::LayerVisibilityButton::LayerVisibilityButton(MainWindow * mw, Layer * layer_)
+MainWindow::LayerVisibilityButton::LayerVisibilityButton(MainWindow * mw, LayerPtr layer_)
 : UI::Label("+", 1, 0, 20, 0), mainWindow(mw), layer(layer_) {}
 
 
@@ -182,7 +182,7 @@ MainWindow::MainWindow(Canvas * canvas_) : canvas(canvas_)
 {
 	vector<UI::Widget *> layerLabels;
 
-	Layer * layer = canvas->getFirstLayer();
+	LayerPtr layer = canvas->getFirstLayer();
 	while(1) {
 		if(layer->type == Layer::Type::LAYER) {
 			UI::Widget * layerNameButton = new LayerButton(this, layer);

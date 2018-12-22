@@ -18,7 +18,7 @@ Brush testBrush;
 
 CanvasResources canvasResources;
 
-Layer * Layer::getNext()
+LayerPtr Layer::getNext()
 {
 	if(firstChild) {
 		assert(type != Layer::Type::LAYER);
@@ -37,19 +37,21 @@ Layer * Layer::getNext()
 	}
 }
 
-Layer * Canvas::getFirstLayer() const
+LayerPtr Canvas::getFirstLayer() const
 {
 	return firstLayer;
 }
 
-void Canvas::setActiveLayer(Layer * layer)
+void Canvas::setActiveLayer(LayerPtr layer)
 {
 	// TODO have layer groups selectable just don't allow drawing on them
-	assert(layer->type == Layer::Type::LAYER);
+	if(layer) {
+		assert(layer->type == Layer::Type::LAYER);
+	}
 	activeLayer = layer;
 }
 
-Layer * Canvas::getActiveLayer() const
+LayerPtr Canvas::getActiveLayer() const
 {
 	return activeLayer;
 }
@@ -350,8 +352,9 @@ bool Canvas::onScroll(unsigned int x, unsigned int y, int direction)
 	return true;
 }
 
-void Canvas::clearLayer(Layer * layer)
+void Canvas::clearLayer(LayerPtr layer)
 {
+	assert(layer);
 	for(ImageBlock & block : imageBlocks) {
 		block.dirtyRegion(block.getX(), block.getY(), image_block_size(), image_block_size());
 		block.fillLayer(layer, 0);
@@ -360,8 +363,9 @@ void Canvas::clearLayer(Layer * layer)
 }
 
 
-void Canvas::fillLayer(Layer * layer, uint32_t colour)
+void Canvas::fillLayer(LayerPtr layer, uint32_t colour)
 {
+	assert(layer);
 	for(ImageBlock & block : imageBlocks) {
 		block.dirtyRegion(block.getX(), block.getY(), image_block_size(), image_block_size());
 		block.fillLayer(layer, colour);
@@ -385,70 +389,70 @@ void Canvas::forceRedraw()
 	canvasDirty = true;
 }
 
-void Canvas::removeLayer(Layer & layer)
+void Canvas::removeLayer(LayerPtr layer)
 {
-	if(activeLayer == &layer) {
+	if(activeLayer == layer) {
 		activeLayer = nullptr;
 	}
 
-	if(firstLayer == &layer) {
-		if(layer.next) {
-			firstLayer = layer.next;
+	if(firstLayer == layer) {
+		if(layer->next) {
+			firstLayer = layer->next;
 		}
 		else {
-			firstLayer = layer.parent;
+			firstLayer = layer->parent;
 		}
 	}
 
-	if(layer.parent && layer.parent->firstChild == &layer) {
-		layer.parent->firstChild = layer.next;
+	if(layer->parent && layer->parent->firstChild == layer) {
+		layer->parent->firstChild = layer->next;
 	}
 
-	if(layer.prev) {
-		layer.prev->next = layer.next;
+	if(layer->prev) {
+		layer->prev->next = layer->next;
 	}
 
-	if(layer.next) {
-		layer.next->prev = layer.prev;
+	if(layer->next) {
+		layer->next->prev = layer->prev;
 	}
 
-	layer.next = layer.prev = layer.parent = nullptr;
+	layer->next = layer->prev = layer->parent = nullptr;
 }
 
-void Canvas::addLayerAfter(Layer & layer, Layer & newLayer)
+void Canvas::addLayerAfter(LayerPtr layer, LayerPtr newLayer)
 {
-	if(layer.next) {
-		Layer * rightLayer = layer.next;
-		layer.next = &newLayer;
-		newLayer.prev = &layer;
-		newLayer.next = rightLayer;
-		rightLayer->prev = &newLayer;
+	if(layer->next) {
+		LayerPtr rightLayer = layer->next;
+		layer->next = newLayer;
+		newLayer->prev = layer;
+		newLayer->next = rightLayer;
+		rightLayer->prev = newLayer;
 	}
 	else {
-		layer.next = &newLayer;
-		newLayer.prev = &layer;
-		newLayer.next = nullptr;
-		newLayer.parent = layer.parent;
+		layer->next = newLayer;
+		newLayer->prev = layer;
+		newLayer->next = nullptr;
+		newLayer->parent = layer->parent;
 	}
 }
 
-void Canvas::addLayerBefore(Layer & layer, Layer & newLayer)
+void Canvas::addLayerBefore(LayerPtr layer, LayerPtr newLayer)
 {
-	if(layer.prev) {
-		Layer * leftLayer = layer.prev;
-		layer.prev = &newLayer;
-		newLayer.next = &layer;
-		newLayer.prev = leftLayer;
-		leftLayer->next = &newLayer;
+	if(layer->prev) {
+		LayerPtr leftLayer = layer->prev;
+		layer->prev = newLayer;
+		newLayer->next = layer;
+		newLayer->prev = leftLayer;
+		leftLayer->next = newLayer;
 	}
 	else {
-		if(&layer == firstLayer) {
-			firstLayer = &newLayer;
+		if(layer == firstLayer) {
+			firstLayer = newLayer;
 		}
 
-		layer.prev = &newLayer;
-		newLayer.next = &layer;
-		newLayer.prev = nullptr;
-		newLayer.parent = layer.parent;
+		layer->prev = newLayer;
+		newLayer->next = layer;
+		newLayer->prev = nullptr;
+		newLayer->parent = layer->parent;
 	}
 }
