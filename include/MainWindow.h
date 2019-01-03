@@ -91,7 +91,15 @@ class MainWindow : public UI::GUI
 	{
 		virtual bool onMouseButtonReleased(unsigned int button) override;
 	public:
-		QuitButton(std::string text_);
+		QuitButton();
+	};
+
+	class NewLayerButton : public UI::Button
+	{
+		MainWindow * mainWindow;
+		virtual bool onMouseButtonReleased(unsigned int button) override;
+	public:
+		NewLayerButton(MainWindow * mw);
 	};
 
 public:

@@ -286,7 +286,6 @@ Canvas::Canvas(unsigned int width, unsigned int height)
 
 	// create test layers
 
-	LayerPtr rootLayer = make_shared<Layer>();
 	LayerPtr layer1 = make_shared<Layer>();
 	LayerPtr layer2 = make_shared<Layer>();
 
@@ -295,16 +294,11 @@ Canvas::Canvas(unsigned int width, unsigned int height)
 	layer2->type = Layer::Type::LAYER;
 	layer2->name = "top layer";
 
-	rootLayer->type = Layer::Type::LAYER_GROUP;
-
 	firstLayer = layer1;
 	activeLayer = layer2;
 
 	layer1->next = layer2;
 	layer2->prev = layer1;
-	layer1->parent = rootLayer;
-	layer2->parent = rootLayer;
-	rootLayer->firstChild = layer1;
 
 	canvasResources.activeColour[0] = 1;
 	canvasResources.activeColour[1] = 0;

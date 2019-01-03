@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <Shader.h>
+#include <algorithm>
 #include "CanvasState.h"
 
 using namespace std;
@@ -42,6 +43,7 @@ void Canvas::draw()
 							layerData = &ld;
 						}
 					}
+
 
 					assert(layerData);
 

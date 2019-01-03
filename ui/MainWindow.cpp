@@ -166,8 +166,8 @@ MainWindow::ColourSetter::ColourSetter(string t_, float r, float g, float b)
 	colour[2] = b;
 }
 
-MainWindow::QuitButton::QuitButton(string text_)
-: UI::Button(text_) {}
+MainWindow::QuitButton::QuitButton()
+: UI::Button("Quit") {}
 
 bool MainWindow::QuitButton::onMouseButtonReleased(unsigned int button)
 { 
@@ -175,12 +175,26 @@ bool MainWindow::QuitButton::onMouseButtonReleased(unsigned int button)
 	if(!button) {
 		quit_application();
 	}
-	return true; 
+	return false; 
+}
+
+MainWindow::NewLayerButton::NewLayerButton(MainWindow * mw)
+: UI::Button("New Layer"), mainWindow(mw) {}
+
+bool MainWindow::NewLayerButton::onMouseButtonReleased(unsigned int button)
+{ 
+	bool redraw = UI::Button::onMouseButtonReleased(button);
+	if(!button) {
+		LayerPtr newLayer = make_shared<Layer>();
+		newLayer->name = "New Layer";
+		mainWindow->canvasView->getCanvas()->addLayer(newLayer);
+	}
+	return redraw; 
 }
 
 void MainWindow::create(::Canvas * canvas)
 {
-	vector<UI::Widget *> layerLabels;
+	vector<UI::Widget *> layersWidgets;
 
 	LayerPtr layer = canvas->getFirstLayer();
 	while(1) {
@@ -193,7 +207,7 @@ void MainWindow::create(::Canvas * canvas)
 
 			UI::Container * c = new UI::Container(vector<UI::Widget *>
 				{layerNameButton, layerVisibilityButton, layerMoveUp, layerMoveDown},
-				0, layerLabels.size(), 160+3*UI::get_widget_padding(), 0, 0, UI::Container::LayoutManager::FLOW_ACROSS);
+				0, layersWidgets.size(), 160+3*UI::get_widget_padding(), 0, 0, UI::Container::LayoutManager::FLOW_ACROSS);
 
 
 			widgets.push_back(layerNameButton);
@@ -202,7 +216,7 @@ void MainWindow::create(::Canvas * canvas)
 			widgets.push_back(layerMoveDown);
 			widgets.push_back(c);
 
-			layerLabels.insert(layerLabels.begin(), c); 
+			layersWidgets.insert(layersWidgets.begin(), c); 
 		}
 
 		if(layer->next) {
@@ -214,19 +228,24 @@ void MainWindow::create(::Canvas * canvas)
 	}
 
 	UI::Container * sep1 = new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::LayoutManager::NONE);
-	layerLabels.insert(layerLabels.begin(), sep1);
+	layersWidgets.insert(layersWidgets.begin(), sep1);
 	widgets.push_back(sep1);
 
 	UI::Container * sep2 = new UI::Container(vector<UI::Widget *> {}, 0, 0, 0, 5, 0xff000000, UI::Container::LayoutManager::NONE);
-	layerLabels.push_back(sep2);
+	layersWidgets.push_back(sep2);
 	widgets.push_back(sep2);
 
-	UI::Container * layersContainer = new UI::Container(layerLabels, 0, 1, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_DOWN);
+	NewLayerButton * newLayerButton = new NewLayerButton(this);
+	widgets.push_back(newLayerButton);
+	layersWidgets.push_back(newLayerButton);
+
+
+	UI::Container * layersContainer = new UI::Container(layersWidgets, 0, 1, 0, 0, 0xff202020, UI::Container::LayoutManager::FLOW_DOWN);
 	widgets.push_back(layersContainer);
 
 	// Menu bar (top)
 
-	QuitButton * bQuit = new QuitButton("Quit");
+	QuitButton * bQuit = new QuitButton();
 	UI::Menu * fileMenu = new UI::Menu(vector<UI::Widget *> { bQuit });
 
 	UI::MenuItem * fileMenuButton = new UI::MenuItem("File", fileMenu);

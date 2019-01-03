@@ -119,6 +119,8 @@ public:
 	void addLayerBefore(LayerPtr layer, LayerPtr newLayer);
 	// TODO: add_layer_as_first_child
 
+	void addLayer(LayerPtr layer);
+
 
 	void freeCanvasResources();
 };

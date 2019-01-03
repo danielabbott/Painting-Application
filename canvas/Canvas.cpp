@@ -436,6 +436,10 @@ void Canvas::removeLayer(LayerPtr layer)
 
 void Canvas::addLayerAfter(LayerPtr layer, LayerPtr newLayer)
 {
+	assert(newLayer->parent == nullptr);
+	assert(newLayer->next == nullptr);
+	assert(newLayer->prev == nullptr);
+
 	if(layer->next) {
 		LayerPtr rightLayer = layer->next;
 		layer->next = newLayer;
@@ -453,6 +457,10 @@ void Canvas::addLayerAfter(LayerPtr layer, LayerPtr newLayer)
 
 void Canvas::addLayerBefore(LayerPtr layer, LayerPtr newLayer)
 {
+	assert(newLayer->parent == nullptr);
+	assert(newLayer->next == nullptr);
+	assert(newLayer->prev == nullptr);
+
 	if(layer->prev) {
 		LayerPtr leftLayer = layer->prev;
 		layer->prev = newLayer;
@@ -469,6 +477,24 @@ void Canvas::addLayerBefore(LayerPtr layer, LayerPtr newLayer)
 		newLayer->next = layer;
 		newLayer->prev = nullptr;
 		newLayer->parent = layer->parent;
+	}
+}
+
+void Canvas::addLayer(LayerPtr layer)
+{
+	assert(layer->parent == nullptr);
+	assert(layer->next == nullptr);
+	assert(layer->prev == nullptr);
+
+	if(activeLayer) {
+		addLayerAfter(activeLayer, layer);
+	}
+	else if(firstLayer) {
+		addLayerAfter(firstLayer, layer);
+	}
+	else {
+		firstLayer = activeLayer = layer;
+		layer->prev = layer->next = layer->parent = nullptr;
 	}
 }
 
