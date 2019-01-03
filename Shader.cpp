@@ -44,7 +44,7 @@ GLuint load_shader(string shaderFilePath, GLenum type, const char * prepend)
 			log[logSize - 1] = 0;
 
 			cerr << "******" << endl << log << endl << "******" << endl;
-			delete log;
+			delete[] log;
 		}
 
 		glDeleteShader(id);
@@ -66,7 +66,7 @@ void print_program_log(GLuint id, ostream&)
 		log[logSize - 1] = 0;
 
 		cerr << "******" << endl << log << endl << "******" << endl;
-		delete log;
+		delete[] log;
 	}
 }
 
