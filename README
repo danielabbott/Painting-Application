@@ -31,28 +31,40 @@ Optional:
 
 For Linux:
 
-0. To set up Linux for c/c++ development, run 
+0. To set up Solus Linux for c/c++ development, run 
 	sudo eopkg install -c system.devel
 on ubuntu run
 	sudo apt-get update && sudo apt-get install build-essential
 
 1. Install the development packages for GLFW, Freetype, zlib, and libpng
-	Alternatively, modify the makefile to use the windows_include directory
-	* The versions of the headers in this folder might not match the versions installed through the package manager
 
 2. cd into the project root directory and run
+	mkdir build
+	cd build
+	cmake ..
 	make -j9
 
 For Windows:
 
-0. Set up MinGW for compiling C++ or use Visual Studio (you will have to set up a project yourself)
+Set up MinGW for compiling C++ or use Visual Studio (you will have to set up a project yourself)
+N.B. If using MinGW, you must use version 7.3.0 as this is the version that the DLLs were compiled with. To use a different version of MinGW you must recompile the DLLs (you will have to download the sources for each library).
+N.B. If using Visual Studio, the included DLL files will probably not work. You will have to compile the sources yourself. For GLFW, DLL files for visual studio are available on their website.
 
-1. Run windowsbuild.bat
+Run the following commands
+mkdir build
+cd build
+cmake .. -G "MinGW Makefiles"
+mingw32-make -j9
 
-.dll files and header files are included
+To run the program run these commands:
+cd ..
+build\paintapp
 
 
-** To debug with gdb on windows (when using mingw), run gdb ./paint
+** To debug with gdb on windows (when using mingw), run gdb build/paint.exe
 Before running the program, type 
 	break abort
 into the gdb console so that gdb will stop execution when an assertation fails. 
+
+
+** The DLLs in this repo can be reused in any project so long as all sources are compiled with MinGW  7.3.0
