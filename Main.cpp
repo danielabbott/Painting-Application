@@ -91,7 +91,7 @@ void parse_args(int argc, char ** argv, unsigned int & glVer, unsigned int & for
 	}
 }
 
-int main(int argc, char ** argv)
+int main_(int argc, char ** argv)
 {
 	unsigned int glVer = 0;
 	unsigned int forceBitDepth = 0;
@@ -172,4 +172,14 @@ int main(int argc, char ** argv)
 	UI::free_ui_resources();
 	close_window();
 	return 0;
+}
+
+int main(int argc, char ** argv)
+{
+    try {
+        main_(argc, argv);
+    }
+    catch(const std::runtime_error & e) {
+        std::cerr << "UNCAUGHT ESCEPTION: " << e.what() << std::endl;
+    }
 }
