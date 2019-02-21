@@ -14,6 +14,7 @@
 #include <iomanip>
 #include <cstring>
 #include <MainWindow.h>
+#include <cassert>
 
 using namespace std;
 
@@ -181,5 +182,6 @@ int main(int argc, char ** argv)
     }
     catch(const std::runtime_error & e) {
         std::cerr << "UNCAUGHT EXCEPTION: " << e.what() << std::endl;
+        assert(0);
     }
 }
