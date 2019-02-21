@@ -180,6 +180,6 @@ int main(int argc, char ** argv)
         main_(argc, argv);
     }
     catch(const std::runtime_error & e) {
-        std::cerr << "UNCAUGHT ESCEPTION: " << e.what() << std::endl;
+        std::cerr << "UNCAUGHT EXCEPTION: " << e.what() << std::endl;
     }
 }
